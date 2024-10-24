@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/crspy2/license-panel/app/internal-http"
+	"github.com/crspy2/license-panel/app/http"
 	"github.com/crspy2/license-panel/config"
 	"github.com/crspy2/license-panel/database"
 	"github.com/getsentry/sentry-go"
@@ -41,5 +41,5 @@ func main() {
 	fmt.Println("Connecting to database...")
 	database.ConnectToDatabase()
 
-	internal_http.StartServer()
+	http.StartServer()
 }

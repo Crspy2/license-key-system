@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "pb/auth";
+
+message StaffObject {
+  string id = 1;
+  string name = 2;
+  string passwordHash = 3;
+  repeated string perms = 4;
+  bool approved = 5;
+}
+
+message SessionObject {
+  string id = 1;
+  string ipAddress = 3;
+  string userAgent = 4;
+  StaffObject staff = 5;
+}
+
+service Auth {
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc Register(RegisterRequest) returns (StandardResponse);
+  rpc Logout(LogoutRequest) returns (StandardResponse);
+
+  rpc GetSessionInfo(SingleSessionRequest) returns (SingleSessionResponse);
+  rpc GetUserSessionsStream(MultiSessionRequest) returns (stream SessionObject);
+  rpc RevokeSession(SessionRevokeRequest) returns (StandardResponse);
+}
+
+message StandardResponse {
+  string  message = 1;
+}
+
+message LoginRequest {
+  string  username = 1;
+  string  password = 2;
+  string  ip = 3;
+  string  user_agent = 4;
+}
+
+message RegisterRequest {
+  string  username = 1;
+  string  password = 2;
+}
+
+message LoginResponse {
+  string message = 2;
+
+  message ResponseData {
+    string sessionId = 1;
+  }
+
+  ResponseData data = 3;
+}
+
+message LogoutRequest {
+  string  sessionId = 1;
+}
+
+message SingleSessionRequest {
+  string sessionId = 1;
+  string ip = 2;
+}
+
+message SingleSessionResponse {
+  string message = 2;
+  SessionObject data = 3;
+}
+
+message MultiSessionRequest {
+  string userId = 1;
+}
+
+
+message MultiSessionResponse {
+  string message = 2;
+  repeated SessionObject data = 3;
+}
+
+message SessionRevokeRequest {
+  string id = 1;
+}

@@ -2,8 +2,8 @@ package database
 
 import (
 	"errors"
-	"github.com/crspy2/license-panel/app/internal-http/utils"
 	"go.jetify.com/typeid"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"time"
@@ -51,6 +51,14 @@ func (sm *StaffModel) BeforeCreate(tx *gorm.DB) error {
 func (sm *StaffModel) AfterUpdate(tx *gorm.DB) error {
 	sm.UpdatedAt = time.Now()
 	return nil
+}
+
+func (sm *StaffModel) PermsToString() []string {
+	perms := make([]string, len(sm.Perms))
+	for i, perm := range sm.Perms {
+		perms[i] = string(perm)
+	}
+	return perms
 }
 
 type Staff struct {
@@ -163,7 +171,8 @@ func (s *Staff) Authenticate(name, password string) (*StaffModel, error) {
 		return nil, err
 	}
 
-	if !utils.CheckPasswordHash(password, staff.PasswordHash) {
+	err = bcrypt.CompareHashAndPassword([]byte(staff.PasswordHash), []byte(password))
+	if err != nil {
 		return nil, errors.New("passwords did not match")
 	}
 

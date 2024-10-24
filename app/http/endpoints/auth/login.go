@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"github.com/crspy2/license-panel/app/http/utils"
 	"github.com/crspy2/license-panel/database"
 	"github.com/gofiber/fiber/v2"
 	"go.jetify.com/typeid"
@@ -15,9 +16,9 @@ func LoginRoute(c *fiber.Ctx) error {
 	staff, err := database.Client.Staff.Authenticate(username, password)
 	if err != nil {
 		return c.Status(http.StatusNotFound).
-			JSON(fiber.Map{
-				"status": http.StatusNotFound,
-				"error":  "No user found with the specified username",
+			JSON(utils.InternalResponse{
+				Success: false,
+				Error:   "No user found with the specified username",
 			})
 	}
 
@@ -35,9 +36,9 @@ func LoginRoute(c *fiber.Ctx) error {
 	err = database.Client.Session.Create(&sessionInfo)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).
-			JSON(fiber.Map{
-				"status": http.StatusInternalServerError,
-				"error":  err.Error(),
+			JSON(utils.InternalResponse{
+				Success: false,
+				Error:   err.Error(),
 			})
 	}
 
@@ -50,9 +51,9 @@ func LoginRoute(c *fiber.Ctx) error {
 	})
 
 	return c.Status(http.StatusOK).
-		JSON(fiber.Map{
-			"status":  http.StatusOK,
-			"message": "User session created",
-			"data":    sessionInfo,
+		JSON(utils.InternalResponse{
+			Success: true,
+			Message: "User session created",
+			Data:    sessionInfo,
 		})
 }

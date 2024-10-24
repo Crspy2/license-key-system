@@ -1,26 +1,13 @@
 package middleware
 
 import (
-	"fmt"
 	"github.com/crspy2/license-panel/database"
 	"github.com/gofiber/fiber/v2"
 	"net/http"
+	"time"
 )
 
 func AuthenticateCookie(c *fiber.Ctx) error {
-	if c.Method() != "GET" {
-		headers := c.GetReqHeaders()
-		fmt.Println(headers)
-		csrfToken := headers["X-Csrf-Token"]
-		if len(csrfToken) == 0 {
-			return c.Status(http.StatusForbidden).
-				JSON(fiber.Map{
-					"status": http.StatusForbidden,
-					"error":  "Forbidden — Invalid CSRF token provided",
-				})
-		}
-	}
-
 	sessionId := c.Cookies("session_token")
 	if sessionId == "" {
 		return c.Status(http.StatusUnauthorized).
@@ -32,6 +19,12 @@ func AuthenticateCookie(c *fiber.Ctx) error {
 
 	s, err := database.Client.Session.Get(sessionId, c.IP())
 	if err != nil {
+		c.Cookie(&fiber.Cookie{
+			Name:    "csrf_token",
+			Value:   "",
+			Expires: time.Now().Add(-time.Hour),
+		})
+
 		return c.Status(http.StatusNotFound).
 			JSON(fiber.Map{
 				"status": http.StatusNotFound,

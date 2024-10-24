@@ -1,15 +1,16 @@
-package internal_http
+package http
 
 import (
 	"fmt"
-	authRoutes "github.com/crspy2/license-panel/app/internal-http/endpoints/auth"
-	selfRoutes "github.com/crspy2/license-panel/app/internal-http/endpoints/self"
-	"github.com/crspy2/license-panel/app/internal-http/middleware"
-	"github.com/crspy2/license-panel/app/internal-http/utils"
+	authRoutes "github.com/crspy2/license-panel/app/http/endpoints/auth"
+	selfRoutes "github.com/crspy2/license-panel/app/http/endpoints/self"
+	"github.com/crspy2/license-panel/app/http/middleware"
+	"github.com/crspy2/license-panel/app/http/utils"
 	"github.com/crspy2/license-panel/config"
 	"github.com/gofiber/contrib/fibersentry"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/csrf"
+	"github.com/gofiber/fiber/v2/middleware/encryptcookie"
 	"github.com/gofiber/fiber/v2/middleware/helmet"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -41,6 +42,12 @@ func StartServer() {
 		WaitForDelivery: true,
 	}))
 
+	// Encrypt all cookies except csrf_token
+	app.Use(encryptcookie.New(encryptcookie.Config{
+		Key:    config.Conf.SessionEncryptionKey,
+		Except: []string{"csrf_token"},
+	}))
+
 	app.Use(recover.New())
 	app.Get("/metrics", monitor.New())
 	app.Use(logger.New())
@@ -48,20 +55,17 @@ func StartServer() {
 
 	// Set Anti-CSRF token protection
 	app.Use(csrf.New(csrf.Config{
-		KeyLookup:         "header:X-Csrf-Token",
+		KeyLookup:         "header:" + csrf.HeaderName,
 		CookieName:        "csrf_token",
 		CookieSameSite:    "Lax",
 		CookieSecure:      true,
 		CookieSessionOnly: true,
-		CookieHTTPOnly:    true,
+		CookieHTTPOnly:    false,
 		Expiration:        1 * time.Hour,
-		//KeyGenerator: func() string {
-		//	return typeid.Must(typeid.WithPrefix("csrf")).String()
-		//},
 		ErrorHandler: func(c *fiber.Ctx, e error) error {
-			return c.Status(http.StatusForbidden).JSON(fiber.Map{
-				"status": http.StatusForbidden,
-				"error":  "Forbidden - invalid csrf token",
+			return c.Status(http.StatusForbidden).JSON(utils.InternalResponse{
+				Success: false,
+				Error:   "Forbidden — Invalid CSRF token provided",
 			})
 		},
 		Storage:    redisClient,
@@ -76,9 +80,9 @@ func StartServer() {
 		LimiterMiddleware: limiter.SlidingWindow{},
 		LimitReached: func(c *fiber.Ctx) error {
 			retryAfter := c.GetRespHeader("Retry-After")
-			return c.Status(http.StatusTooManyRequests).JSON(fiber.Map{
-				"status": http.StatusTooManyRequests,
-				"error":  fmt.Sprintf("You have been ratelimited, please try in %s", retryAfter),
+			return c.Status(http.StatusTooManyRequests).JSON(utils.InternalResponse{
+				Success: false,
+				Error:   fmt.Sprintf("You have been ratelimited, please try in %s", retryAfter),
 			})
 		},
 	}))
@@ -108,7 +112,7 @@ func StartServer() {
 	auth := app.Group("/auth")
 	auth.Post("/register", authRoutes.RegisterRoute)
 	auth.Post("/login", authRoutes.LoginRoute)
-	auth.Post("/logout", authRoutes.LogoutRoute)
+	auth.Post("/logout", middleware.AuthenticateCookie, authRoutes.LogoutRoute)
 
 	self := app.Group("/self", middleware.AuthenticateCookie)
 

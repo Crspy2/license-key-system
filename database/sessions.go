@@ -9,9 +9,9 @@ import (
 type SessionModal struct {
 	Id        string    `gorm:"unique;primaryKey" json:"id"`
 	StaffId   string    `json:"staff_id"`
-	ExpiresAt time.Time `json:"expires_at"`
 	IpAddress string    `gorm:"unique" json:"ip_address"`
 	UserAgent string    `json:"user_agent"`
+	ExpiresAt time.Time `json:"expires_at"`
 
 	Staff StaffModel `gorm:"foreignKey:StaffId;references:Id" json:"staff"`
 }
@@ -19,11 +19,6 @@ type SessionModal struct {
 func (sm *SessionModal) TableName() string {
 	return "sessions"
 }
-
-//func (sm *SessionModal) BeforeCreate(tx *gorm.DB) error {
-//	sm.Id = typeid.Must(typeid.WithPrefix("sess")).String()
-//	return nil
-//}
 
 type Session struct {
 	db *gorm.DB
@@ -64,7 +59,7 @@ func (s *Session) Get(id, ip string) (*SessionModal, error) {
 	return &session, nil
 }
 
-func (s *Session) GetUserSessions(id string) (*[]SessionModal, error) {
+func (s *Session) GetUserSessions(id string) ([]SessionModal, error) {
 	var sessions []SessionModal
 
 	err := s.db.
@@ -77,7 +72,7 @@ func (s *Session) GetUserSessions(id string) (*[]SessionModal, error) {
 		return nil, err
 	}
 
-	return &sessions, nil
+	return sessions, nil
 }
 
 func (s *Session) Create(session *SessionModal) error {
@@ -97,9 +92,17 @@ func (s *Session) Create(session *SessionModal) error {
 	return nil
 }
 
-func (s *Session) Delete(session SessionModal) error {
-	var err error
-	err = s.db.Delete(&session).Error
+func (s *Session) Delete(id string) error {
+	sessionMatch := &SessionModal{
+		Id: id,
+	}
+
+	err := s.db.
+		Preload(clause.Associations).
+		Where(sessionMatch).
+		Delete(sessionMatch).
+		Error
+
 	if err != nil {
 		return err
 	}

@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package staff;
+
+option go_package = "pb/staff";
+
+message Staff {
+  string id = 1;
+  string name = 2;
+  string passwordHash = 3;
+  repeated string perms = 4;
+  bool approved = 5;
+}
