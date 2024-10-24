@@ -2,11 +2,12 @@ package services
 
 import (
 	"context"
-	"errors"
 	"github.com/crspy2/license-panel/app/grpc/utils"
 	"github.com/crspy2/license-panel/database"
 	"github.com/crspy2/license-panel/pb/auth"
 	"go.jetify.com/typeid"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"time"
 )
 
@@ -18,18 +19,18 @@ func (s *AuthServer) Login(ctx context.Context, in *auth.LoginRequest) (*auth.Lo
 	username := in.GetUsername()
 
 	if len(username) < 3 {
-		return nil, errors.New("username must be at least 3 characters in length")
+		return nil, status.Errorf(codes.InvalidArgument, "username must be at least 3 characters in length")
 	}
 
 	password := in.GetPassword()
 
 	if len(password) < 8 {
-		return nil, errors.New("password must be at least 8 characters in length")
+		return nil, status.Errorf(codes.InvalidArgument, "password must be at least 8 characters in length")
 	}
 
 	staffMember, err := database.Client.Staff.Authenticate(username, password)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
 
 	ip := in.GetIp()
@@ -47,7 +48,7 @@ func (s *AuthServer) Login(ctx context.Context, in *auth.LoginRequest) (*auth.Lo
 	_ = database.Client.Session.DeleteByIP(ip)
 	err = database.Client.Session.Create(&sessionInfo)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.AlreadyExists, err.Error())
 	}
 
 	return &auth.LoginResponse{
@@ -62,25 +63,25 @@ func (s *AuthServer) Register(ctx context.Context, in *auth.RegisterRequest) (*a
 	username := in.GetUsername()
 
 	if len(username) < 3 {
-		return nil, errors.New("username must be at least 3 characters in length")
+		return nil, status.Errorf(codes.InvalidArgument, "username must be at least 3 characters in length")
 	}
 
 	password := in.GetPassword()
 
 	if len(password) < 8 {
-		return nil, errors.New("password must be at least 8 characters in length")
+		return nil, status.Errorf(codes.InvalidArgument, "password must be at least 8 characters in length")
 	}
 
 	staffMember, _ := database.Client.Staff.GetByName(username)
 	if staffMember != nil {
-		return nil, errors.New("this username is already in use, please choose another one")
+		return nil, status.Errorf(codes.AlreadyExists, "this username is already in use, please choose another one")
 	}
 
 	hashedPassword, _ := utils.HashPassword(password)
 
 	staffMember, err := database.Client.Staff.Create(username, hashedPassword)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.AlreadyExists, err.Error())
 	}
 
 	return &auth.StandardResponse{
@@ -91,12 +92,12 @@ func (s *AuthServer) Register(ctx context.Context, in *auth.RegisterRequest) (*a
 func (s *AuthServer) Logout(ctx context.Context, in *auth.LogoutRequest) (*auth.StandardResponse, error) {
 	sessionId := in.GetSessionId()
 	if sessionId == "" {
-		return nil, errors.New("no session id found")
+		return nil, status.Errorf(codes.InvalidArgument, "no session id found")
 	}
 
 	err := database.Client.Session.Delete(sessionId)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
 
 	return &auth.StandardResponse{
@@ -109,12 +110,12 @@ func (s *AuthServer) GetSessionInfo(ctx context.Context, in *auth.SingleSessionR
 	ip := in.GetIp()
 
 	if sessionId == "" || ip == "" {
-		return nil, errors.New("invalid procedure call")
+		return nil, status.Errorf(codes.InvalidArgument, "invalid procedure call")
 	}
 
 	session, err := database.Client.Session.Get(sessionId, ip)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
 	return &auth.SingleSessionResponse{
 		Message: "Retrieved session information",
@@ -134,30 +135,23 @@ func (s *AuthServer) GetSessionInfo(ctx context.Context, in *auth.SingleSessionR
 }
 
 func (s *AuthServer) GetUserSessionsStream(in *auth.MultiSessionRequest, stream auth.Auth_GetUserSessionsStreamServer) error {
-	//logger := utils.GetLogger(stream.Context())
-
 	userId := in.GetUserId()
 	if userId == "" {
-		return errors.New("invalid procedure call")
+		return status.Errorf(codes.InvalidArgument, "invalid procedure call")
 	}
 
 	sessions, err := database.Client.Session.GetUserSessions(userId)
 	if err != nil {
-		//logger.Fatal(err.Error())
-		return err
+		return status.Errorf(codes.NotFound, err.Error())
 	}
 
 	for _, session := range sessions {
-		// Check if the context has been canceled
 		select {
 		case <-stream.Context().Done():
-			//logger.Info("Context canceled, stopping stream")
 			return stream.Context().Err()
 		default:
-			// Continue processing
 		}
 
-		// Map the GORM model to the Protobuf message
 		sessionItem := &auth.SessionObject{
 			Id:        session.Id,
 			IpAddress: session.IpAddress,
@@ -171,14 +165,10 @@ func (s *AuthServer) GetUserSessionsStream(in *auth.MultiSessionRequest, stream 
 			},
 		}
 
-		// Send the item to the client
 		if err = stream.Send(sessionItem); err != nil {
-			//logger.Error("Failed to send item", zap.Error(err))
-			return err
+			return status.Errorf(codes.Internal, err.Error())
 		}
 	}
-
-	//logger.Info("Successfully streamed items")
 	return nil
 }
 
@@ -186,15 +176,15 @@ func (s *AuthServer) RevokeSession(ctx context.Context, in *auth.SessionRevokeRe
 	sessionId := in.GetId()
 
 	if sessionId == "" {
-		return nil, errors.New("invalid procedure call")
+		return nil, status.Errorf(codes.InvalidArgument, "invalid procedure call")
 	}
 
 	err := database.Client.Session.Delete(sessionId)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
 
 	return &auth.StandardResponse{
-		Message: "Session Revoked",
+		Message: "Session revoked successfully",
 	}, nil
 }

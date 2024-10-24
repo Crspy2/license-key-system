@@ -4,31 +4,40 @@ import (
 	"github.com/crspy2/license-panel/app/grpc/interceptors"
 	"github.com/crspy2/license-panel/app/grpc/services"
 	"github.com/crspy2/license-panel/pb/auth"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/grpc/status"
 	"net"
 )
 
-func StartGRPCServer(l *zap.Logger) {
+func StartGRPCServer(l *zap.SugaredLogger) {
 	l.Info("Starting GRPC server")
 	listener, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		l.Panic("Failed to create listener: " + err.Error())
 	}
 
-	opts := []grpc.ServerOption{
+	recoverOpts := []recovery.Option{
+		recovery.WithRecoveryHandler(func(p any) (err error) {
+			return status.Errorf(codes.Unknown, p.(string))
+		}),
+	}
+
+	grpcOpts := []grpc.ServerOption{
 		grpc.ChainUnaryInterceptor(
 			interceptors.UnaryLoggingInterceptor(l),
-			interceptors.UnaryRecoveryInterceptor,
+			recovery.UnaryServerInterceptor(recoverOpts...),
 		),
 		grpc.ChainStreamInterceptor(
 			interceptors.StreamLoggingInterceptor(l),
-			interceptors.StreamRecoveryInterceptor,
+			recovery.StreamServerInterceptor(recoverOpts...),
 		),
 	}
 
-	s := grpc.NewServer(opts...)
+	s := grpc.NewServer(grpcOpts...)
 	auth.RegisterAuthServer(s, &services.AuthServer{})
 
 	reflection.Register(s)

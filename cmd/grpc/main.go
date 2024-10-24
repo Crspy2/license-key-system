@@ -41,5 +41,5 @@ func main() {
 	database.ConnectToDatabase()
 	sugar.Infoln("Database connection established")
 
-	grpc.StartGRPCServer(logger)
+	grpc.StartGRPCServer(sugar)
 }

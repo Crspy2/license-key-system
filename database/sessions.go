@@ -41,17 +41,13 @@ func (s *Session) Get(id, ip string) (*SessionModal, error) {
 	var session SessionModal
 
 	err := s.db.
+		Preload(clause.Associations).
 		Where(&SessionModal{
 			Id:        id,
 			IpAddress: ip,
 		}).
 		First(&session).
 		Error
-	if err != nil {
-		return nil, err
-	}
-
-	err = s.db.Preload(clause.Associations).Find(&session).Error
 	if err != nil {
 		return nil, err
 	}
@@ -65,6 +61,7 @@ func (s *Session) GetUserSessions(id string) ([]SessionModal, error) {
 	err := s.db.
 		Preload(clause.Associations).
 		Where(&SessionModal{StaffId: id}).
+		Where("expires_at > ?", time.Now()).
 		Find(&sessions).
 		Error
 

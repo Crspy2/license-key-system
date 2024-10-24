@@ -9,7 +9,7 @@ import (
 )
 
 // LoggingInterceptor logs unary requests and responses using zap.Logger
-func UnaryLoggingInterceptor(l *zap.Logger) grpc.UnaryServerInterceptor {
+func UnaryLoggingInterceptor(l *zap.SugaredLogger) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req interface{},
@@ -23,7 +23,7 @@ func UnaryLoggingInterceptor(l *zap.Logger) grpc.UnaryServerInterceptor {
 		start := time.Now()
 
 		// Log the incoming request with -->
-		requestLogger.Info("--> gRPC unary request received",
+		requestLogger.Info("\u001B[1m\u001B[32m---> \u001B[0m gRPC unary request received ",
 			zap.Any("request", req),
 		)
 
@@ -33,13 +33,13 @@ func UnaryLoggingInterceptor(l *zap.Logger) grpc.UnaryServerInterceptor {
 		// Log the response with <-- and time taken
 		duration := time.Since(start)
 		if err != nil {
-			requestLogger.Error("<-- gRPC unary request failed",
+			requestLogger.Error("\u001B[1m\u001B[31m<--- \u001B[0m gRPC unary request failed ",
 				zap.Any("request", req),
 				zap.Error(err),
 				zap.Duration("duration", duration),
 			)
 		} else {
-			requestLogger.Info("<-- gRPC unary request completed",
+			requestLogger.Info("\u001B[1m\u001B[32m<--- \u001B[0m gRPC unary request completed ",
 				zap.Any("response", resp),
 				zap.Duration("duration", duration),
 			)
@@ -49,7 +49,7 @@ func UnaryLoggingInterceptor(l *zap.Logger) grpc.UnaryServerInterceptor {
 }
 
 // StreamLoggingInterceptor returns a new streaming server interceptor that adds logging.
-func StreamLoggingInterceptor(l *zap.Logger) grpc.StreamServerInterceptor {
+func StreamLoggingInterceptor(l *zap.SugaredLogger) grpc.StreamServerInterceptor {
 	return func(
 		srv interface{},
 		ss grpc.ServerStream,
@@ -72,7 +72,7 @@ func StreamLoggingInterceptor(l *zap.Logger) grpc.StreamServerInterceptor {
 		start := time.Now()
 
 		// Log the incoming stream request
-		requestLogger.Info("--> gRPC stream request received",
+		requestLogger.Info("\u001B[1m\u001B[32m---> \u001B[0m gRPC stream request received ",
 			zap.String("method", info.FullMethod),
 		)
 
@@ -82,12 +82,12 @@ func StreamLoggingInterceptor(l *zap.Logger) grpc.StreamServerInterceptor {
 		// Log the end of the stream with duration
 		duration := time.Since(start)
 		if err != nil {
-			requestLogger.Error("<-- gRPC stream request failed",
+			requestLogger.Error("\u001B[1m\u001B[31m<--- \u001B[0m gRPC stream request failed ",
 				zap.Error(err),
 				zap.Duration("duration", duration),
 			)
 		} else {
-			requestLogger.Info("<-- gRPC stream request completed",
+			requestLogger.Info("\u001B[1m\u001B[32m<--- \u001B[0m gRPC stream request completed ",
 				zap.Duration("duration", duration),
 			)
 		}
