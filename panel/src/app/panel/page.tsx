@@ -5,13 +5,8 @@ import toast from "react-hot-toast";
 const PanelPage = async () => {
     const session = await getCurrentSession()
 
-    if (!session)
+    if (!session || !session.success)
         redirect("/auth/login")
-
-    if (!session.success) {
-        toast.error(`The request errored with a code ${session.code}. You are being redirected to login`)
-        redirect("/auth/login")
-    }
 
     return (
         <div className="bg-red-600">
