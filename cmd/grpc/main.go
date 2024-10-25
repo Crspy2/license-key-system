@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/crspy2/license-panel/app/grpc"
-	"github.com/crspy2/license-panel/config"
-	"github.com/crspy2/license-panel/database"
+	"crspy2/licenses/app/grpc"
+	"crspy2/licenses/config"
+	"crspy2/licenses/database"
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"

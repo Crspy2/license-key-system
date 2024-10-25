@@ -1,12 +1,12 @@
 package http
 
 import (
+	authRoutes "crspy2/licenses/app/http/endpoints/auth"
+	selfRoutes "crspy2/licenses/app/http/endpoints/self"
+	"crspy2/licenses/app/http/middleware"
+	"crspy2/licenses/app/http/utils"
+	"crspy2/licenses/config"
 	"fmt"
-	authRoutes "github.com/crspy2/license-panel/app/http/endpoints/auth"
-	selfRoutes "github.com/crspy2/license-panel/app/http/endpoints/self"
-	"github.com/crspy2/license-panel/app/http/middleware"
-	"github.com/crspy2/license-panel/app/http/utils"
-	"github.com/crspy2/license-panel/config"
 	"github.com/gofiber/contrib/fibersentry"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/csrf"

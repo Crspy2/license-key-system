@@ -2,9 +2,9 @@ package services
 
 import (
 	"context"
-	"github.com/crspy2/license-panel/app/grpc/utils"
-	"github.com/crspy2/license-panel/database"
-	"github.com/crspy2/license-panel/pb/auth"
+	"crspy2/licenses/app/grpc/utils"
+	"crspy2/licenses/database"
+	pf "crspy2/licenses/proto/protofiles"
 	"go.jetify.com/typeid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -12,10 +12,10 @@ import (
 )
 
 type AuthServer struct {
-	auth.UnimplementedAuthServer
+	pf.UnimplementedAuthServer
 }
 
-func (s *AuthServer) Login(ctx context.Context, in *auth.LoginRequest) (*auth.LoginResponse, error) {
+func (s *AuthServer) Login(ctx context.Context, in *pf.LoginRequest) (*pf.LoginResponse, error) {
 	username := in.GetUsername()
 
 	if len(username) < 3 {
@@ -51,15 +51,15 @@ func (s *AuthServer) Login(ctx context.Context, in *auth.LoginRequest) (*auth.Lo
 		return nil, status.Errorf(codes.AlreadyExists, err.Error())
 	}
 
-	return &auth.LoginResponse{
+	return &pf.LoginResponse{
 		Message: "Successfully created database session",
-		Data: &auth.LoginResponse_ResponseData{
+		Data: &pf.LoginResponse_ResponseData{
 			SessionId: sessionToken,
 		},
 	}, nil
 }
 
-func (s *AuthServer) Register(ctx context.Context, in *auth.RegisterRequest) (*auth.StandardResponse, error) {
+func (s *AuthServer) Register(ctx context.Context, in *pf.RegisterRequest) (*pf.StandardResponse, error) {
 	username := in.GetUsername()
 
 	if len(username) < 3 {
@@ -84,12 +84,12 @@ func (s *AuthServer) Register(ctx context.Context, in *auth.RegisterRequest) (*a
 		return nil, status.Errorf(codes.AlreadyExists, err.Error())
 	}
 
-	return &auth.StandardResponse{
+	return &pf.StandardResponse{
 		Message: "Registration complete. Wait while a staff member approves your account",
 	}, nil
 }
 
-func (s *AuthServer) Logout(ctx context.Context, in *auth.LogoutRequest) (*auth.StandardResponse, error) {
+func (s *AuthServer) Logout(ctx context.Context, in *pf.LogoutRequest) (*pf.StandardResponse, error) {
 	sessionId := in.GetSessionId()
 	if sessionId == "" {
 		return nil, status.Errorf(codes.InvalidArgument, "no session id found")
@@ -100,12 +100,12 @@ func (s *AuthServer) Logout(ctx context.Context, in *auth.LogoutRequest) (*auth.
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
 
-	return &auth.StandardResponse{
+	return &pf.StandardResponse{
 		Message: "The session has been deleted",
 	}, nil
 }
 
-func (s *AuthServer) GetSessionInfo(ctx context.Context, in *auth.SingleSessionRequest) (*auth.SingleSessionResponse, error) {
+func (s *AuthServer) GetSessionInfo(ctx context.Context, in *pf.SingleSessionRequest) (*pf.SingleSessionResponse, error) {
 	sessionId := in.GetSessionId()
 	ip := in.GetIp()
 
@@ -117,30 +117,30 @@ func (s *AuthServer) GetSessionInfo(ctx context.Context, in *auth.SingleSessionR
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
-	return &auth.SingleSessionResponse{
+	return &pf.SingleSessionResponse{
 		Message: "Retrieved session information",
-		Data: &auth.SessionObject{
+		Data: &pf.SessionObject{
 			Id:        session.Id,
 			IpAddress: session.IpAddress,
 			UserAgent: session.UserAgent,
-			Staff: &auth.StaffObject{
+			Staff: &pf.StaffObject{
 				Id:           session.Staff.Id,
 				Name:         session.Staff.Name,
 				PasswordHash: session.Staff.PasswordHash,
 				Approved:     session.Staff.Approved,
-				Perms:        session.Staff.PermsToString(),
+				Perms:        session.Staff.GetPermissionNames(),
 			},
 		},
 	}, nil
 }
 
-func (s *AuthServer) GetUserSessionsStream(in *auth.MultiSessionRequest, stream auth.Auth_GetUserSessionsStreamServer) error {
-	userId := in.GetUserId()
-	if userId == "" {
+func (s *AuthServer) GetUserSessionsStream(in *pf.MultiSessionRequest, stream pf.Auth_GetUserSessionsStreamServer) error {
+	staffId := in.GetStaffId()
+	if staffId == "" {
 		return status.Errorf(codes.InvalidArgument, "invalid procedure call")
 	}
 
-	sessions, err := database.Client.Session.GetUserSessions(userId)
+	sessions, err := database.Client.Session.GetUserSessions(staffId)
 	if err != nil {
 		return status.Errorf(codes.NotFound, err.Error())
 	}
@@ -152,16 +152,16 @@ func (s *AuthServer) GetUserSessionsStream(in *auth.MultiSessionRequest, stream 
 		default:
 		}
 
-		sessionItem := &auth.SessionObject{
+		sessionItem := &pf.SessionObject{
 			Id:        session.Id,
 			IpAddress: session.IpAddress,
 			UserAgent: session.UserAgent,
-			Staff: &auth.StaffObject{
+			Staff: &pf.StaffObject{
 				Id:           session.Staff.Id,
 				Name:         session.Staff.Name,
 				PasswordHash: session.Staff.PasswordHash,
 				Approved:     session.Staff.Approved,
-				Perms:        session.Staff.PermsToString(),
+				Perms:        session.Staff.GetPermissionNames(),
 			},
 		}
 
@@ -172,7 +172,7 @@ func (s *AuthServer) GetUserSessionsStream(in *auth.MultiSessionRequest, stream 
 	return nil
 }
 
-func (s *AuthServer) RevokeSession(ctx context.Context, in *auth.SessionRevokeRequest) (*auth.StandardResponse, error) {
+func (s *AuthServer) RevokeSession(ctx context.Context, in *pf.SessionRevokeRequest) (*pf.StandardResponse, error) {
 	sessionId := in.GetId()
 
 	if sessionId == "" {
@@ -184,7 +184,7 @@ func (s *AuthServer) RevokeSession(ctx context.Context, in *auth.SessionRevokeRe
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
 
-	return &auth.StandardResponse{
+	return &pf.StandardResponse{
 		Message: "Session revoked successfully",
 	}, nil
 }

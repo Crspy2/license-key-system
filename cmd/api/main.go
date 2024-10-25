@@ -1,10 +1,10 @@
 package main
 
 import (
+	"crspy2/licenses/app/http"
+	"crspy2/licenses/config"
+	"crspy2/licenses/database"
 	"fmt"
-	"github.com/crspy2/license-panel/app/http"
-	"github.com/crspy2/license-panel/config"
-	"github.com/crspy2/license-panel/database"
 	"github.com/getsentry/sentry-go"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/utils"

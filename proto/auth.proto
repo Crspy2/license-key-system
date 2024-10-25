@@ -1,22 +1,14 @@
 syntax = "proto3";
+option go_package = "crspy2/licenses/protofiles";
+package protofiles;
 
-package auth;
-
-option go_package = "pb/auth";
-
-message StaffObject {
-  string id = 1;
-  string name = 2;
-  string passwordHash = 3;
-  repeated string perms = 4;
-  bool approved = 5;
-}
+import "staff.proto";
 
 message SessionObject {
   string id = 1;
   string ipAddress = 3;
   string userAgent = 4;
-  StaffObject staff = 5;
+  optional StaffObject staff = 5;
 }
 
 service Auth {
@@ -70,13 +62,7 @@ message SingleSessionResponse {
 }
 
 message MultiSessionRequest {
-  string userId = 1;
-}
-
-
-message MultiSessionResponse {
-  string message = 2;
-  repeated SessionObject data = 3;
+  string staffId = 1;
 }
 
 message SessionRevokeRequest {

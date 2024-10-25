@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/crspy2/license-panel/database"
+	"crspy2/licenses/database"
 	"github.com/gofiber/fiber/v2"
 	"net/http"
 	"time"

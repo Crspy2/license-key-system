@@ -9,34 +9,43 @@ import (
 	"time"
 )
 
-type Permission string
+type Permission int64
 
-// Staff have an array of permissions which indicate what they are allowed to do
 const (
-	ApproveStaffPermission Permission = "approve" // Approve registered Staff so they can login
-
-	HWIDResetPermission Permission = "hwid" // Ability to reset HWIDs
-	PassResetPermission Permission = "pass" // Ability to reset account passwords
-	ViewKeysPermission  Permission = "keys" // Ability to view user license keys and search for keys
-
-	KeyGenPermission     Permission = "keygen" // Ability to generate Keys
-	CompensatePermission Permission = "comp"   // Ability to compensate license keys
-
-	StatusChangePermission Permission = "status"   // Ability to edit products and upload files for products
-	ProductsPermission     Permission = "products" // Ability to change product status
-	UserActionsPermission  Permission = "Staff"    // Ability to change user account information
-	OffsetsPermission      Permission = "offsets"  // Ability to set and edit offsets
+	ApproveStaffPermission Permission = 1 << iota // 1 << 0 == 1
+	HWIDResetPermission                           // 1 << 1 == 2
+	PassResetPermission                           // 1 << 2 == 4
+	ViewKeysPermission                            // 1 << 3 == 8
+	KeyGenPermission                              // 1 << 4 == 16
+	CompensatePermission                          // 1 << 5 == 32
+	StatusChangePermission                        // 1 << 6 == 64
+	ProductsPermission                            // 1 << 7 == 128
+	UserActionsPermission                         // 1 << 8 == 256
+	OffsetsPermission                             // 1 << 9 == 512
 )
+
+var permissionNames = map[Permission]string{
+	ApproveStaffPermission: "Approve Staff",
+	HWIDResetPermission:    "Reset HWID",
+	PassResetPermission:    "Reset Password",
+	ViewKeysPermission:     "View License Keys",
+	KeyGenPermission:       "Generate Keys",
+	CompensatePermission:   "Compensate Keys",
+	StatusChangePermission: "Change Product Status",
+	ProductsPermission:     "Manage Products",
+	UserActionsPermission:  "Manage User Actions",
+	OffsetsPermission:      "Set/Edit Offsets",
+}
 
 type StaffModel struct {
 	Id           string         `gorm:"unique;primaryKey" json:"id"`
-	Name         string         `json:"name"`
+	Name         string         `gorm:"unique" json:"name"`
 	PasswordHash string         `json:"password_hash"`
-	Perms        []Permission   `gorm:"type:text" json:"perms"`
+	Perms        int64          `gorm:"type:bigint" json:"perms"`
 	Approved     bool           `gorm:"default:false" json:"approved"`
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
-	Sessions     []SessionModal `gorm:"foreignKey:StaffId" json:"sessions"`
+	Sessions     []SessionModal `gorm:"unique;foreignKey:StaffId" json:"sessions"`
 }
 
 func (sm *StaffModel) TableName() string {
@@ -53,12 +62,26 @@ func (sm *StaffModel) AfterUpdate(tx *gorm.DB) error {
 	return nil
 }
 
-func (sm *StaffModel) PermsToString() []string {
-	perms := make([]string, len(sm.Perms))
-	for i, perm := range sm.Perms {
-		perms[i] = string(perm)
+func (sm *StaffModel) HasPermission(permission Permission) bool {
+	return sm.Perms&int64(permission) != 0
+}
+
+func (sm *StaffModel) GetPermissionNames() []string {
+	var perms []string
+	for perm, name := range permissionNames {
+		if sm.HasPermission(perm) { // Use the HasPermission method
+			perms = append(perms, name)
+		}
 	}
 	return perms
+}
+
+func (sm *StaffModel) UpdatePermissions(permissions ...Permission) {
+	var newPerms int64
+	for _, permission := range permissions {
+		newPerms |= int64(permission)
+	}
+	sm.Perms = newPerms
 }
 
 type Staff struct {
@@ -139,25 +162,6 @@ func (s *Staff) Create(name, passwordHash string) (*StaffModel, error) {
 	return &user, nil
 }
 
-func (s *Staff) ApproveStaff(id string) error {
-	var staff StaffModel
-
-	err := s.db.
-		Where(&StaffModel{Id: id}).
-		First(&staff).
-		Error
-
-	if err != nil {
-		return err
-	}
-
-	staff.Approved = true
-	staff.Perms = []Permission{HWIDResetPermission, PassResetPermission, ViewKeysPermission}
-	s.db.Save(&staff)
-
-	return nil
-}
-
 func (s *Staff) Authenticate(name, password string) (*StaffModel, error) {
 	var staff StaffModel
 
@@ -179,25 +183,70 @@ func (s *Staff) Authenticate(name, password string) (*StaffModel, error) {
 	return &staff, nil
 }
 
-func (s *Staff) SetPermissions(id string, perms []Permission) (*StaffModel, error) {
+func (s *Staff) ApproveStaff(id string) error {
 	var staff StaffModel
 
 	err := s.db.
-		Preload(clause.Associations).
 		Where(&StaffModel{Id: id}).
 		First(&staff).
 		Error
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	staff.Perms = perms
+	staff.Approved = true
 
-	err = s.db.Save(&staff).Error
+	staff.UpdatePermissions(HWIDResetPermission, PassResetPermission, KeyGenPermission)
+
+	s.db.Save(&staff)
+
+	return nil
+}
+
+func (s *Staff) AddPermission(id string, permission Permission) error {
+	var staff StaffModel
+
+	err := s.db.Where(&StaffModel{Id: id}).First(&staff).Error
 	if err != nil {
-		return nil, err
+		return err
+	}
+	staff.Perms |= int64(permission) // Set the permission bit
+
+	s.db.Save(&staff)
+
+	return nil
+}
+
+func (s *Staff) RemovePermission(id string, permission Permission) error {
+	var staff StaffModel
+
+	err := s.db.Where(&StaffModel{Id: id}).First(&staff).Error
+	if err != nil {
+		return err
+	}
+	staff.Perms &= ^int64(permission) // Clear the permission bit
+
+	s.db.Save(&staff)
+
+	return nil
+}
+
+func (s *Staff) SetPermissions(id string, permissions ...Permission) error {
+	var staff StaffModel
+
+	err := s.db.Where(&StaffModel{Id: id}).First(&staff).Error
+	if err != nil {
+		return err
 	}
 
-	return &staff, nil
+	var newPerms int64
+	for _, permission := range permissions {
+		newPerms |= int64(permission)
+	}
+	staff.Perms = newPerms
+
+	s.db.Save(&staff)
+
+	return nil
 }

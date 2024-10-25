@@ -1,4 +1,4 @@
-module github.com/crspy2/license-panel
+module crspy2/licenses
 
 go 1.23.2
 

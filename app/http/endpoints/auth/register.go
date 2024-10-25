@@ -1,8 +1,8 @@
 package auth
 
 import (
-	"github.com/crspy2/license-panel/app/http/utils"
-	"github.com/crspy2/license-panel/database"
+	"crspy2/licenses/app/http/utils"
+	"crspy2/licenses/database"
 	"github.com/gofiber/fiber/v2"
 	"net/http"
 )

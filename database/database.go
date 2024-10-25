@@ -1,7 +1,7 @@
 package database
 
 import (
-	"github.com/crspy2/license-panel/config"
+	"crspy2/licenses/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
