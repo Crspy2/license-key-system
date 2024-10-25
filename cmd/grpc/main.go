@@ -31,8 +31,8 @@ func main() {
 
 	sugar.Infoln("Loading environment variables...")
 	err = godotenv.Load()
-	if err != nil {
-		sugar.Panicln("Error loading .env file")
+	if err == nil {
+		sugar.Errorln("Error loading .env file")
 	}
 	config.LoadConfig()
 	sugar.Infoln("Configuration files loaded")
