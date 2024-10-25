@@ -45,7 +45,7 @@ type StaffModel struct {
 	Approved     bool           `gorm:"default:false" json:"approved"`
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
-	Sessions     []SessionModal `gorm:"unique;foreignKey:StaffId" json:"sessions"`
+	Sessions     []SessionModal `gorm:"foreignKey:StaffId" json:"sessions"`
 }
 
 func (sm *StaffModel) TableName() string {
