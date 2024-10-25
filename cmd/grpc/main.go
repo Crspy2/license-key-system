@@ -4,11 +4,9 @@ import (
 	"crspy2/licenses/app/grpc"
 	"crspy2/licenses/config"
 	"crspy2/licenses/database"
-	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"log"
-	"os"
 )
 
 func main() {
@@ -30,15 +28,7 @@ func main() {
 
 	sugar.Infoln("Initialized Zap Logging")
 
-	if os.Getenv("RAILWAY_ENVIRONMENT_NAME") != "production" {
-		sugar.Infoln("Loading environment variables...")
-		err = godotenv.Load()
-		if err != nil {
-			sugar.Fatalln("Error loading .env file")
-		}
-		config.LoadConfig()
-		sugar.Infoln("Configuration files loaded")
-	}
+	config.LoadConfig(sugar)
 
 	sugar.Infoln("Connecting to database...")
 	database.ConnectToDatabase()

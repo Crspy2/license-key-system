@@ -2,7 +2,7 @@ package config
 
 import (
 	"github.com/joho/godotenv"
-	"log"
+	"go.uber.org/zap"
 	"os"
 	"strconv"
 )
@@ -35,16 +35,15 @@ type (
 
 var Conf Config
 
-func LoadConfig() {
+func LoadConfig(s *zap.SugaredLogger) {
+	s.Infoln("Loading environment variables...")
+	_ = godotenv.Load()
+
 	rateLimitWindow, _ := strconv.Atoi(os.Getenv("RATELIMIT_WINDOW"))
 	rateLimitMax, _ := strconv.Atoi(os.Getenv("RATELIMIT_MAX"))
 	redisPort, _ := strconv.Atoi(os.Getenv("REDIS_PORT"))
 	redisThreads, _ := strconv.Atoi(os.Getenv("REDIS_THREADS"))
-
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	s.Debugln(os.Getenv("DATABASE_URL"))
 
 	Conf = Config{
 		SentryDSN:            os.Getenv("SENTRY_DSN"),
@@ -63,4 +62,6 @@ func LoadConfig() {
 			Threads:  redisThreads,
 		},
 	}
+
+	s.Infoln("Configuration files loaded")
 }
