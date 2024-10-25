@@ -33,7 +33,7 @@ func main() {
 	if os.Getenv("RAILWAY_ENVIRONMENT_NAME") != "production" {
 		sugar.Infoln("Loading environment variables...")
 		err = godotenv.Load()
-		if err == nil {
+		if err != nil {
 			sugar.Fatalln("Error loading .env file")
 		}
 		config.LoadConfig()
