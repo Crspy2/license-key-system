@@ -99,7 +99,7 @@ export const LoginCard = () => {
                             Sign In
                         </button>
                         <p className="flex gap-1.5 justify-center text-center text-sm text-zinc-400">
-                            Don't have an account?
+                            Don&apos;t have an account?
                             <Link href="/auth/register"
                                className="font-medium text-white decoration-white/20 underline-offset-4 outline-none hover:underline focus-visible:underline">
                                 Sign Up
