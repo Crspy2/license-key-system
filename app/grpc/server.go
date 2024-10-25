@@ -3,6 +3,7 @@ package grpc
 import (
 	"crspy2/licenses/app/grpc/interceptors"
 	"crspy2/licenses/app/grpc/services"
+	"crspy2/licenses/config"
 	pf "crspy2/licenses/proto/protofiles"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
 	"go.uber.org/zap"
@@ -15,7 +16,7 @@ import (
 
 func StartGRPCServer(l *zap.SugaredLogger) {
 	l.Info("Starting GRPC server")
-	listener, err := net.Listen("tcp", ":8080")
+	listener, err := net.Listen("tcp", ":"+config.Conf.GrpcPort)
 	if err != nil {
 		l.Panic("Failed to create listener: " + err.Error())
 	}
@@ -43,7 +44,7 @@ func StartGRPCServer(l *zap.SugaredLogger) {
 	// TODO: Remove this line in production
 	reflection.Register(s)
 
-	l.Info("GRPC server listening on tcp port :8080")
+	l.Infof("GRPC server listening on tcp port %s", config.Conf.GrpcPort)
 	if err = s.Serve(listener); err != nil {
 		l.Panic("Failed to server: " + err.Error())
 	}

@@ -11,6 +11,7 @@ type (
 	Config struct {
 		SentryDSN            string
 		SessionEncryptionKey string
+		GrpcPort             string
 		Database             Database
 		Ratelimit            Ratelimit
 		Redis                Redis
@@ -48,6 +49,7 @@ func LoadConfig(s *zap.SugaredLogger) {
 	Conf = Config{
 		SentryDSN:            os.Getenv("SENTRY_DSN"),
 		SessionEncryptionKey: os.Getenv("SESSION_SECRET"),
+		GrpcPort:             os.Getenv("PORT"),
 		Database: Database{
 			URI: os.Getenv("DATABASE_URL"),
 		},
