@@ -7,7 +7,6 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
-	"net"
 	"time"
 )
 
@@ -46,13 +45,8 @@ func RetrieveSessionFromContext(ctx context.Context) (*database.SessionModal, co
 		return nil, nil, status.Errorf(codes.Unauthenticated, "Unable to determine client IP")
 	}
 
-	clientIP, _, err := net.SplitHostPort(p.Addr.String())
-	if err != nil {
-		return nil, nil, status.Errorf(codes.Internal, "Invalid client IP format")
-	}
-
 	// Fetch the session from the database
-	session, err := database.Client.Session.Get(sessionTokens[0], clientIP)
+	session, err := database.Client.Session.Get(sessionTokens[0])
 	if err != nil {
 		return nil, nil, status.Errorf(codes.Unauthenticated, "Invalid session token")
 	}

@@ -45,14 +45,13 @@ func (s *Session) schema() error {
 	return nil
 }
 
-func (s *Session) Get(id, ip string) (*SessionModal, error) {
+func (s *Session) Get(id string) (*SessionModal, error) {
 	var session SessionModal
 
 	err := s.db.
 		Preload(clause.Associations).
 		Where(&SessionModal{
-			Id:        id,
-			IpAddress: ip,
+			Id: id,
 		}).
 		First(&session).
 		Error
