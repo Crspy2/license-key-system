@@ -1,6 +1,7 @@
 package database
 
 import (
+	"go.jetify.com/typeid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"time"
@@ -8,12 +9,19 @@ import (
 
 type SessionModal struct {
 	Id        string    `gorm:"unique;primaryKey" json:"id"`
+	CsrfToken string    `gorm:"unique" json:"csrf_token"`
 	StaffId   string    `json:"staff_id"`
 	IpAddress string    `gorm:"unique" json:"ip_address"`
 	UserAgent string    `json:"user_agent"`
 	ExpiresAt time.Time `json:"expires_at"`
 
 	Staff StaffModel `gorm:"foreignKey:StaffId;references:Id" json:"staff"`
+}
+
+func (sm *SessionModal) BeforeCreate(tx *gorm.DB) error {
+	sm.Id = typeid.Must(typeid.WithPrefix("sess")).String()
+	sm.CsrfToken = typeid.Must(typeid.WithPrefix("csrf")).String()
+	return nil
 }
 
 func (sm *SessionModal) TableName() string {

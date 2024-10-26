@@ -23,14 +23,14 @@ export const login = async  (values: z.infer<typeof LoginSchema>) => {
     const req = new LoginRequest()
     req.setUsername(username)
     req.setPassword(password)
-    req.setIp(h.get("x-forwarded-for") || "::1")
-    req.setUserAgent(userAgent({headers: h}).ua)
+
+    const md = new Metadata
+    md.set("x-forwarded-for", h.get("x-forwarded-for") || "::1")
+    md.set("x-client-user-agent", userAgent({headers: h}).ua)
 
     const r = await new Promise<Safe<LoginResponse>>((res) => {
-        authClient.login(req, new Metadata, unary_callback(res));
+        authClient.login(req, md, unary_callback(res));
     });
-
-    console.log(JSON.stringify(r));
 
     if (r.success) {
         const cookieStore = await cookies()
@@ -40,6 +40,11 @@ export const login = async  (values: z.infer<typeof LoginSchema>) => {
             httpOnly: true,
             sameSite: 'lax',
             expires: new Date(Date.now() + hour * 2),
+        })
+        cookieStore.set('csrf_token', r.data.toObject().data!.csrftoken, {
+            secure: true,
+            httpOnly: true,
+            sameSite: 'lax',
         })
     }
 

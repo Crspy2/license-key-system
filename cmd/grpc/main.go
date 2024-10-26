@@ -26,13 +26,13 @@ func main() {
 
 	sugar := logger.Sugar()
 
-	sugar.Infoln("Initialized Zap Logging")
+	sugar.Info("Initialized Zap Logging")
 
 	config.LoadConfig(sugar)
 
-	sugar.Infoln("Connecting to database...")
+	sugar.Info("Connecting to database...")
 	database.ConnectToDatabase()
-	sugar.Infoln("Database connection established")
+	sugar.Info("Database connection established")
 
 	grpc.StartGRPCServer(sugar)
 }

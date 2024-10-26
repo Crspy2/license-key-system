@@ -2,7 +2,9 @@ syntax = "proto3";
 option go_package = "crspy2/licenses/protofiles";
 package protofiles;
 
+import "google/protobuf/empty.proto";
 import "staff.proto";
+import "globals.proto";
 
 message SessionObject {
   string id = 1;
@@ -14,22 +16,17 @@ message SessionObject {
 service Auth {
   rpc Login(LoginRequest) returns (LoginResponse);
   rpc Register(RegisterRequest) returns (StandardResponse);
-  rpc Logout(LogoutRequest) returns (StandardResponse);
+  rpc Logout(google.protobuf.Empty) returns (StandardResponse);
 
-  rpc GetSessionInfo(SingleSessionRequest) returns (SingleSessionResponse);
+  rpc GetSessionInfo(google.protobuf.Empty) returns (SingleSessionResponse);
   rpc GetUserSessionsStream(MultiSessionRequest) returns (stream SessionObject);
   rpc RevokeSession(SessionRevokeRequest) returns (StandardResponse);
 }
 
-message StandardResponse {
-  string  message = 1;
-}
 
 message LoginRequest {
   string  username = 1;
   string  password = 2;
-  string  ip = 3;
-  string  user_agent = 4;
 }
 
 message RegisterRequest {
@@ -42,18 +39,10 @@ message LoginResponse {
 
   message ResponseData {
     string sessionId = 1;
+    string csrfToken = 2;
   }
 
   ResponseData data = 3;
-}
-
-message LogoutRequest {
-  string  sessionId = 1;
-}
-
-message SingleSessionRequest {
-  string sessionId = 1;
-  string ip = 2;
 }
 
 message SingleSessionResponse {
@@ -66,5 +55,5 @@ message MultiSessionRequest {
 }
 
 message SessionRevokeRequest {
-  string id = 1;
+  string sessionId = 1;
 }

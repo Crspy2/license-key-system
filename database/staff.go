@@ -52,7 +52,7 @@ func (sm *StaffModel) TableName() string {
 	return "staff"
 }
 func (sm *StaffModel) BeforeCreate(tx *gorm.DB) error {
-	sm.Id = typeid.Must(typeid.WithPrefix("staff")).String()
+	sm.Id = typeid.Must(typeid.WithPrefix("staf")).String()
 	sm.CreatedAt = time.Now()
 	return nil
 }
@@ -183,7 +183,7 @@ func (s *Staff) Authenticate(name, password string) (*StaffModel, error) {
 	return &staff, nil
 }
 
-func (s *Staff) ApproveStaff(id string) error {
+func (s *Staff) ApproveStaff(id string) (*StaffModel, error) {
 	var staff StaffModel
 
 	err := s.db.
@@ -192,16 +192,16 @@ func (s *Staff) ApproveStaff(id string) error {
 		Error
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	staff.Approved = true
 
-	staff.UpdatePermissions(HWIDResetPermission, PassResetPermission, KeyGenPermission)
+	staff.UpdatePermissions(HWIDResetPermission, PassResetPermission, ViewKeysPermission)
 
 	s.db.Save(&staff)
 
-	return nil
+	return &staff, nil
 }
 
 func (s *Staff) AddPermission(id string, permission Permission) error {
@@ -232,7 +232,7 @@ func (s *Staff) RemovePermission(id string, permission Permission) error {
 	return nil
 }
 
-func (s *Staff) SetPermissions(id string, permissions ...Permission) error {
+func (s *Staff) SetPermissions(id string, permissions []Permission) error {
 	var staff StaffModel
 
 	err := s.db.Where(&StaffModel{Id: id}).First(&staff).Error

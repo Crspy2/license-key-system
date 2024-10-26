@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -33,8 +34,8 @@ const (
 type AuthClient interface {
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*StandardResponse, error)
-	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*StandardResponse, error)
-	GetSessionInfo(ctx context.Context, in *SingleSessionRequest, opts ...grpc.CallOption) (*SingleSessionResponse, error)
+	Logout(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*StandardResponse, error)
+	GetSessionInfo(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*SingleSessionResponse, error)
 	GetUserSessionsStream(ctx context.Context, in *MultiSessionRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[SessionObject], error)
 	RevokeSession(ctx context.Context, in *SessionRevokeRequest, opts ...grpc.CallOption) (*StandardResponse, error)
 }
@@ -67,7 +68,7 @@ func (c *authClient) Register(ctx context.Context, in *RegisterRequest, opts ...
 	return out, nil
 }
 
-func (c *authClient) Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*StandardResponse, error) {
+func (c *authClient) Logout(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*StandardResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(StandardResponse)
 	err := c.cc.Invoke(ctx, Auth_Logout_FullMethodName, in, out, cOpts...)
@@ -77,7 +78,7 @@ func (c *authClient) Logout(ctx context.Context, in *LogoutRequest, opts ...grpc
 	return out, nil
 }
 
-func (c *authClient) GetSessionInfo(ctx context.Context, in *SingleSessionRequest, opts ...grpc.CallOption) (*SingleSessionResponse, error) {
+func (c *authClient) GetSessionInfo(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*SingleSessionResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SingleSessionResponse)
 	err := c.cc.Invoke(ctx, Auth_GetSessionInfo_FullMethodName, in, out, cOpts...)
@@ -122,8 +123,8 @@ func (c *authClient) RevokeSession(ctx context.Context, in *SessionRevokeRequest
 type AuthServer interface {
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	Register(context.Context, *RegisterRequest) (*StandardResponse, error)
-	Logout(context.Context, *LogoutRequest) (*StandardResponse, error)
-	GetSessionInfo(context.Context, *SingleSessionRequest) (*SingleSessionResponse, error)
+	Logout(context.Context, *emptypb.Empty) (*StandardResponse, error)
+	GetSessionInfo(context.Context, *emptypb.Empty) (*SingleSessionResponse, error)
 	GetUserSessionsStream(*MultiSessionRequest, grpc.ServerStreamingServer[SessionObject]) error
 	RevokeSession(context.Context, *SessionRevokeRequest) (*StandardResponse, error)
 	mustEmbedUnimplementedAuthServer()
@@ -142,10 +143,10 @@ func (UnimplementedAuthServer) Login(context.Context, *LoginRequest) (*LoginResp
 func (UnimplementedAuthServer) Register(context.Context, *RegisterRequest) (*StandardResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
 }
-func (UnimplementedAuthServer) Logout(context.Context, *LogoutRequest) (*StandardResponse, error) {
+func (UnimplementedAuthServer) Logout(context.Context, *emptypb.Empty) (*StandardResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Logout not implemented")
 }
-func (UnimplementedAuthServer) GetSessionInfo(context.Context, *SingleSessionRequest) (*SingleSessionResponse, error) {
+func (UnimplementedAuthServer) GetSessionInfo(context.Context, *emptypb.Empty) (*SingleSessionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSessionInfo not implemented")
 }
 func (UnimplementedAuthServer) GetUserSessionsStream(*MultiSessionRequest, grpc.ServerStreamingServer[SessionObject]) error {
@@ -212,7 +213,7 @@ func _Auth_Register_Handler(srv interface{}, ctx context.Context, dec func(inter
 }
 
 func _Auth_Logout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LogoutRequest)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -224,13 +225,13 @@ func _Auth_Logout_Handler(srv interface{}, ctx context.Context, dec func(interfa
 		FullMethod: Auth_Logout_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).Logout(ctx, req.(*LogoutRequest))
+		return srv.(AuthServer).Logout(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Auth_GetSessionInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SingleSessionRequest)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -242,7 +243,7 @@ func _Auth_GetSessionInfo_Handler(srv interface{}, ctx context.Context, dec func
 		FullMethod: Auth_GetSessionInfo_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).GetSessionInfo(ctx, req.(*SingleSessionRequest))
+		return srv.(AuthServer).GetSessionInfo(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }

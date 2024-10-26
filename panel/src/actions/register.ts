@@ -2,7 +2,8 @@
 
 import { z } from "zod"
 import { Metadata } from "@grpc/grpc-js"
-import { RegisterRequest, StandardResponse } from "@/proto/auth_pb"
+import { StandardResponse } from "@/proto/globals_pb"
+import { RegisterRequest } from "@/proto/auth_pb"
 import { authClient, unary_callback } from "@/server/grpc"
 import type { Safe } from "@/server/safe"
 import { RegisterSchema } from "@/schemas"

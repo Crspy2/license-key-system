@@ -7,6 +7,7 @@ require (
 	github.com/gofiber/contrib/fibersentry v1.0.6
 	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/gofiber/storage/redis/v2 v2.0.3
+	github.com/golang/protobuf v1.5.3
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0
 	github.com/joho/godotenv v1.5.1
 	go.jetify.com/typeid v1.3.0

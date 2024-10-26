@@ -1,0 +1,7 @@
+syntax = "proto3";
+option go_package = "crspy2/licenses/protofiles";
+package protofiles;
+
+message StandardResponse {
+  string  message = 1;
+}

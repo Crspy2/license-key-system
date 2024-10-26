@@ -5,7 +5,9 @@
 /* eslint-disable */
 
 import * as jspb from "google-protobuf";
+import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb";
 import * as staff_pb from "./staff_pb";
+import * as globals_pb from "./globals_pb";
 
 export class SessionObject extends jspb.Message { 
     getId(): string;
@@ -39,35 +41,11 @@ export namespace SessionObject {
     }
 }
 
-export class StandardResponse extends jspb.Message { 
-    getMessage(): string;
-    setMessage(value: string): StandardResponse;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): StandardResponse.AsObject;
-    static toObject(includeInstance: boolean, msg: StandardResponse): StandardResponse.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: StandardResponse, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): StandardResponse;
-    static deserializeBinaryFromReader(message: StandardResponse, reader: jspb.BinaryReader): StandardResponse;
-}
-
-export namespace StandardResponse {
-    export type AsObject = {
-        message: string,
-    }
-}
-
 export class LoginRequest extends jspb.Message { 
     getUsername(): string;
     setUsername(value: string): LoginRequest;
     getPassword(): string;
     setPassword(value: string): LoginRequest;
-    getIp(): string;
-    setIp(value: string): LoginRequest;
-    getUserAgent(): string;
-    setUserAgent(value: string): LoginRequest;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): LoginRequest.AsObject;
@@ -83,8 +61,6 @@ export namespace LoginRequest {
     export type AsObject = {
         username: string,
         password: string,
-        ip: string,
-        userAgent: string,
     }
 }
 
@@ -140,6 +116,8 @@ export namespace LoginResponse {
     export class ResponseData extends jspb.Message { 
         getSessionid(): string;
         setSessionid(value: string): ResponseData;
+        getCsrftoken(): string;
+        setCsrftoken(value: string): ResponseData;
 
         serializeBinary(): Uint8Array;
         toObject(includeInstance?: boolean): ResponseData.AsObject;
@@ -154,52 +132,10 @@ export namespace LoginResponse {
     export namespace ResponseData {
         export type AsObject = {
             sessionid: string,
+            csrftoken: string,
         }
     }
 
-}
-
-export class LogoutRequest extends jspb.Message { 
-    getSessionid(): string;
-    setSessionid(value: string): LogoutRequest;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): LogoutRequest.AsObject;
-    static toObject(includeInstance: boolean, msg: LogoutRequest): LogoutRequest.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: LogoutRequest, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): LogoutRequest;
-    static deserializeBinaryFromReader(message: LogoutRequest, reader: jspb.BinaryReader): LogoutRequest;
-}
-
-export namespace LogoutRequest {
-    export type AsObject = {
-        sessionid: string,
-    }
-}
-
-export class SingleSessionRequest extends jspb.Message { 
-    getSessionid(): string;
-    setSessionid(value: string): SingleSessionRequest;
-    getIp(): string;
-    setIp(value: string): SingleSessionRequest;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): SingleSessionRequest.AsObject;
-    static toObject(includeInstance: boolean, msg: SingleSessionRequest): SingleSessionRequest.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: SingleSessionRequest, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): SingleSessionRequest;
-    static deserializeBinaryFromReader(message: SingleSessionRequest, reader: jspb.BinaryReader): SingleSessionRequest;
-}
-
-export namespace SingleSessionRequest {
-    export type AsObject = {
-        sessionid: string,
-        ip: string,
-    }
 }
 
 export class SingleSessionResponse extends jspb.Message { 
@@ -249,8 +185,8 @@ export namespace MultiSessionRequest {
 }
 
 export class SessionRevokeRequest extends jspb.Message { 
-    getId(): string;
-    setId(value: string): SessionRevokeRequest;
+    getSessionid(): string;
+    setSessionid(value: string): SessionRevokeRequest;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): SessionRevokeRequest.AsObject;
@@ -264,6 +200,6 @@ export class SessionRevokeRequest extends jspb.Message {
 
 export namespace SessionRevokeRequest {
     export type AsObject = {
-        id: string,
+        sessionid: string,
     }
 }

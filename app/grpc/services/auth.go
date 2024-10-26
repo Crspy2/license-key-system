@@ -5,8 +5,9 @@ import (
 	"crspy2/licenses/app/grpc/utils"
 	"crspy2/licenses/database"
 	pf "crspy2/licenses/proto/protofiles"
-	"go.jetify.com/typeid"
+	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"time"
 )
@@ -19,13 +20,13 @@ func (s *AuthServer) Login(ctx context.Context, in *pf.LoginRequest) (*pf.LoginR
 	username := in.GetUsername()
 
 	if len(username) < 3 {
-		return nil, status.Errorf(codes.InvalidArgument, "username must be at least 3 characters in length")
+		return nil, status.Errorf(codes.InvalidArgument, "Username must be at least 3 characters in length")
 	}
 
 	password := in.GetPassword()
 
 	if len(password) < 8 {
-		return nil, status.Errorf(codes.InvalidArgument, "password must be at least 8 characters in length")
+		return nil, status.Errorf(codes.InvalidArgument, "Password must be at least 8 characters in length")
 	}
 
 	staffMember, err := database.Client.Staff.Authenticate(username, password)
@@ -33,19 +34,29 @@ func (s *AuthServer) Login(ctx context.Context, in *pf.LoginRequest) (*pf.LoginR
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
 
-	ip := in.GetIp()
-	userAgent := in.GetUserAgent()
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return nil, status.Errorf(codes.InvalidArgument, "Missing metadata")
+	}
 
-	sessionToken := typeid.Must(typeid.WithPrefix("sess")).String()
+	ip, ok := md["x-forwarded-for"]
+	if !ok {
+		return nil, status.Errorf(codes.InvalidArgument, "Missing IP address")
+	}
+
+	userAgent, ok := md["x-client-user-agent"]
+	if !ok {
+		return nil, status.Errorf(codes.InvalidArgument, "Missing IP address")
+	}
+
 	sessionInfo := database.SessionModal{
-		Id:        sessionToken,
 		StaffId:   staffMember.Id,
-		IpAddress: ip,
-		UserAgent: userAgent,
+		IpAddress: ip[0],
+		UserAgent: userAgent[0],
 		ExpiresAt: time.Now().Add(5 * time.Hour),
 	}
 
-	_ = database.Client.Session.DeleteByIP(ip)
+	_ = database.Client.Session.DeleteByIP(ip[0])
 	err = database.Client.Session.Create(&sessionInfo)
 	if err != nil {
 		return nil, status.Errorf(codes.AlreadyExists, err.Error())
@@ -54,7 +65,8 @@ func (s *AuthServer) Login(ctx context.Context, in *pf.LoginRequest) (*pf.LoginR
 	return &pf.LoginResponse{
 		Message: "Successfully created database session",
 		Data: &pf.LoginResponse_ResponseData{
-			SessionId: sessionToken,
+			SessionId: sessionInfo.Id,
+			CsrfToken: sessionInfo.CsrfToken,
 		},
 	}, nil
 }
@@ -63,18 +75,18 @@ func (s *AuthServer) Register(ctx context.Context, in *pf.RegisterRequest) (*pf.
 	username := in.GetUsername()
 
 	if len(username) < 3 {
-		return nil, status.Errorf(codes.InvalidArgument, "username must be at least 3 characters in length")
+		return nil, status.Errorf(codes.InvalidArgument, "Username must be at least 3 characters in length")
 	}
 
 	password := in.GetPassword()
 
 	if len(password) < 8 {
-		return nil, status.Errorf(codes.InvalidArgument, "password must be at least 8 characters in length")
+		return nil, status.Errorf(codes.InvalidArgument, "Password must be at least 8 characters in length")
 	}
 
 	staffMember, _ := database.Client.Staff.GetByName(username)
 	if staffMember != nil {
-		return nil, status.Errorf(codes.AlreadyExists, "this username is already in use, please choose another one")
+		return nil, status.Errorf(codes.AlreadyExists, "This username is already in use, please choose another one")
 	}
 
 	hashedPassword, _ := utils.HashPassword(password)
@@ -89,13 +101,13 @@ func (s *AuthServer) Register(ctx context.Context, in *pf.RegisterRequest) (*pf.
 	}, nil
 }
 
-func (s *AuthServer) Logout(ctx context.Context, in *pf.LogoutRequest) (*pf.StandardResponse, error) {
-	sessionId := in.GetSessionId()
-	if sessionId == "" {
-		return nil, status.Errorf(codes.InvalidArgument, "no session id found")
+func (s *AuthServer) Logout(ctx context.Context, _ *empty.Empty) (*pf.StandardResponse, error) {
+	session := ctx.Value("session").(*database.SessionModal)
+	if session == nil {
+		return nil, status.Errorf(codes.Unauthenticated, "No session information found")
 	}
 
-	err := database.Client.Session.Delete(sessionId)
+	err := database.Client.Session.Delete(session.Id)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
@@ -105,18 +117,12 @@ func (s *AuthServer) Logout(ctx context.Context, in *pf.LogoutRequest) (*pf.Stan
 	}, nil
 }
 
-func (s *AuthServer) GetSessionInfo(ctx context.Context, in *pf.SingleSessionRequest) (*pf.SingleSessionResponse, error) {
-	sessionId := in.GetSessionId()
-	ip := in.GetIp()
-
-	if sessionId == "" || ip == "" {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid procedure call")
+func (s *AuthServer) GetSessionInfo(ctx context.Context, _ *empty.Empty) (*pf.SingleSessionResponse, error) {
+	session := ctx.Value("session").(*database.SessionModal)
+	if session == nil {
+		return nil, status.Errorf(codes.Unauthenticated, "No session information found")
 	}
 
-	session, err := database.Client.Session.Get(sessionId, ip)
-	if err != nil {
-		return nil, status.Errorf(codes.NotFound, err.Error())
-	}
 	return &pf.SingleSessionResponse{
 		Message: "Retrieved session information",
 		Data: &pf.SessionObject{
@@ -137,12 +143,16 @@ func (s *AuthServer) GetSessionInfo(ctx context.Context, in *pf.SingleSessionReq
 func (s *AuthServer) GetUserSessionsStream(in *pf.MultiSessionRequest, stream pf.Auth_GetUserSessionsStreamServer) error {
 	staffId := in.GetStaffId()
 	if staffId == "" {
-		return status.Errorf(codes.InvalidArgument, "invalid procedure call")
+		return status.Errorf(codes.InvalidArgument, "Invalid procedure call")
 	}
 
 	sessions, err := database.Client.Session.GetUserSessions(staffId)
 	if err != nil {
 		return status.Errorf(codes.NotFound, err.Error())
+	}
+
+	if len(sessions) == 0 {
+		return status.Errorf(codes.NotFound, "No sessions found for this user")
 	}
 
 	for _, session := range sessions {
@@ -173,10 +183,10 @@ func (s *AuthServer) GetUserSessionsStream(in *pf.MultiSessionRequest, stream pf
 }
 
 func (s *AuthServer) RevokeSession(ctx context.Context, in *pf.SessionRevokeRequest) (*pf.StandardResponse, error) {
-	sessionId := in.GetId()
+	sessionId := in.GetSessionId()
 
 	if sessionId == "" {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid procedure call")
+		return nil, status.Errorf(codes.InvalidArgument, "Invalid procedure call")
 	}
 
 	err := database.Client.Session.Delete(sessionId)

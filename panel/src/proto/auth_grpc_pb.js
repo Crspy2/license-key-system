@@ -3,7 +3,20 @@
 'use strict';
 var grpc = require('@grpc/grpc-js');
 var auth_pb = require('./auth_pb.js');
+var google_protobuf_empty_pb = require('google-protobuf/google/protobuf/empty_pb.js');
 var staff_pb = require('./staff_pb.js');
+var globals_pb = require('./globals_pb.js');
+
+function serialize_google_protobuf_Empty(arg) {
+  if (!(arg instanceof google_protobuf_empty_pb.Empty)) {
+    throw new Error('Expected argument of type google.protobuf.Empty');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_google_protobuf_Empty(buffer_arg) {
+  return google_protobuf_empty_pb.Empty.deserializeBinary(new Uint8Array(buffer_arg));
+}
 
 function serialize_protofiles_LoginRequest(arg) {
   if (!(arg instanceof auth_pb.LoginRequest)) {
@@ -25,17 +38,6 @@ function serialize_protofiles_LoginResponse(arg) {
 
 function deserialize_protofiles_LoginResponse(buffer_arg) {
   return auth_pb.LoginResponse.deserializeBinary(new Uint8Array(buffer_arg));
-}
-
-function serialize_protofiles_LogoutRequest(arg) {
-  if (!(arg instanceof auth_pb.LogoutRequest)) {
-    throw new Error('Expected argument of type protofiles.LogoutRequest');
-  }
-  return Buffer.from(arg.serializeBinary());
-}
-
-function deserialize_protofiles_LogoutRequest(buffer_arg) {
-  return auth_pb.LogoutRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_protofiles_MultiSessionRequest(arg) {
@@ -82,17 +84,6 @@ function deserialize_protofiles_SessionRevokeRequest(buffer_arg) {
   return auth_pb.SessionRevokeRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
-function serialize_protofiles_SingleSessionRequest(arg) {
-  if (!(arg instanceof auth_pb.SingleSessionRequest)) {
-    throw new Error('Expected argument of type protofiles.SingleSessionRequest');
-  }
-  return Buffer.from(arg.serializeBinary());
-}
-
-function deserialize_protofiles_SingleSessionRequest(buffer_arg) {
-  return auth_pb.SingleSessionRequest.deserializeBinary(new Uint8Array(buffer_arg));
-}
-
 function serialize_protofiles_SingleSessionResponse(arg) {
   if (!(arg instanceof auth_pb.SingleSessionResponse)) {
     throw new Error('Expected argument of type protofiles.SingleSessionResponse');
@@ -105,14 +96,14 @@ function deserialize_protofiles_SingleSessionResponse(buffer_arg) {
 }
 
 function serialize_protofiles_StandardResponse(arg) {
-  if (!(arg instanceof auth_pb.StandardResponse)) {
+  if (!(arg instanceof globals_pb.StandardResponse)) {
     throw new Error('Expected argument of type protofiles.StandardResponse');
   }
   return Buffer.from(arg.serializeBinary());
 }
 
 function deserialize_protofiles_StandardResponse(buffer_arg) {
-  return auth_pb.StandardResponse.deserializeBinary(new Uint8Array(buffer_arg));
+  return globals_pb.StandardResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 
@@ -133,7 +124,7 @@ var AuthService = exports.AuthService = {
     requestStream: false,
     responseStream: false,
     requestType: auth_pb.RegisterRequest,
-    responseType: auth_pb.StandardResponse,
+    responseType: globals_pb.StandardResponse,
     requestSerialize: serialize_protofiles_RegisterRequest,
     requestDeserialize: deserialize_protofiles_RegisterRequest,
     responseSerialize: serialize_protofiles_StandardResponse,
@@ -143,10 +134,10 @@ var AuthService = exports.AuthService = {
     path: '/protofiles.Auth/Logout',
     requestStream: false,
     responseStream: false,
-    requestType: auth_pb.LogoutRequest,
-    responseType: auth_pb.StandardResponse,
-    requestSerialize: serialize_protofiles_LogoutRequest,
-    requestDeserialize: deserialize_protofiles_LogoutRequest,
+    requestType: google_protobuf_empty_pb.Empty,
+    responseType: globals_pb.StandardResponse,
+    requestSerialize: serialize_google_protobuf_Empty,
+    requestDeserialize: deserialize_google_protobuf_Empty,
     responseSerialize: serialize_protofiles_StandardResponse,
     responseDeserialize: deserialize_protofiles_StandardResponse,
   },
@@ -154,10 +145,10 @@ var AuthService = exports.AuthService = {
     path: '/protofiles.Auth/GetSessionInfo',
     requestStream: false,
     responseStream: false,
-    requestType: auth_pb.SingleSessionRequest,
+    requestType: google_protobuf_empty_pb.Empty,
     responseType: auth_pb.SingleSessionResponse,
-    requestSerialize: serialize_protofiles_SingleSessionRequest,
-    requestDeserialize: deserialize_protofiles_SingleSessionRequest,
+    requestSerialize: serialize_google_protobuf_Empty,
+    requestDeserialize: deserialize_google_protobuf_Empty,
     responseSerialize: serialize_protofiles_SingleSessionResponse,
     responseDeserialize: deserialize_protofiles_SingleSessionResponse,
   },
@@ -177,7 +168,7 @@ var AuthService = exports.AuthService = {
     requestStream: false,
     responseStream: false,
     requestType: auth_pb.SessionRevokeRequest,
-    responseType: auth_pb.StandardResponse,
+    responseType: globals_pb.StandardResponse,
     requestSerialize: serialize_protofiles_SessionRevokeRequest,
     requestDeserialize: deserialize_protofiles_SessionRevokeRequest,
     responseSerialize: serialize_protofiles_StandardResponse,

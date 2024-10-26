@@ -3,10 +3,43 @@ option go_package = "crspy2/licenses/protofiles";
 package protofiles;
 
 
+import "google/protobuf/empty.proto";
+import "globals.proto";
+
 message StaffObject {
   string id = 1;
   string name = 2;
   string passwordHash = 3;
   repeated string perms = 4;
   bool approved = 5;
+}
+
+message StaffId {
+  string id = 1;
+}
+
+service Staff {
+  rpc ApproveStaff(StaffId) returns (ApprovalResponse);
+
+  rpc GetStaff(StaffId) returns (StaffObject);
+  rpc GetAllStaffStream(google.protobuf.Empty) returns (stream StaffObject);
+
+  rpc SetStaffPermissions(MultiPermissionRequest) returns (StandardResponse);
+  rpc AddStaffPermission(SinglePermissionRequest) returns (StandardResponse);
+  rpc RemoveStaffPermission(SinglePermissionRequest) returns (StandardResponse);
+}
+
+message ApprovalResponse {
+  string message = 1;
+  StaffObject staff = 2;
+}
+
+message MultiPermissionRequest {
+  string staffId = 1;
+  repeated int64 permissions = 2;
+}
+
+message SinglePermissionRequest {
+  string staffId = 1;
+  int64 permission = 2;
 }

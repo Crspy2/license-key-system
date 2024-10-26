@@ -1,4 +1,4 @@
-import {getCurrentSession} from "@/data/session";
+import {getCurrentSession} from "@/server/services/session";
 import {redirect} from "next/navigation";
 import toast from "react-hot-toast";
 

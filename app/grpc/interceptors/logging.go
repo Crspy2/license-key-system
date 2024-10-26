@@ -8,8 +8,15 @@ import (
 	"google.golang.org/grpc"
 )
 
-// LoggingInterceptor logs unary requests and responses using zap.Logger
-func UnaryLoggingInterceptor(l *zap.SugaredLogger) grpc.UnaryServerInterceptor {
+type LoggingInterceptor struct{}
+
+// NewLoggingInterceptor returns a new AuthInterceptor instance
+func NewLoggingInterceptor() *LoggingInterceptor {
+	return &LoggingInterceptor{}
+}
+
+// UnaryServerInterceptor LoggingInterceptor logs unary requests and responses using zap.Logger
+func (i *LoggingInterceptor) UnaryServerInterceptor(l *zap.SugaredLogger) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req interface{},
@@ -48,8 +55,8 @@ func UnaryLoggingInterceptor(l *zap.SugaredLogger) grpc.UnaryServerInterceptor {
 	}
 }
 
-// StreamLoggingInterceptor returns a new streaming server interceptor that adds logging.
-func StreamLoggingInterceptor(l *zap.SugaredLogger) grpc.StreamServerInterceptor {
+// StreamServerInterceptor LoggingInterceptor returns a new streaming server interceptor that adds logging.
+func (i *LoggingInterceptor) StreamServerInterceptor(l *zap.SugaredLogger) grpc.StreamServerInterceptor {
 	return func(
 		srv interface{},
 		ss grpc.ServerStream,

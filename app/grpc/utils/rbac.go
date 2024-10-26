@@ -1,6 +1,8 @@
 package utils
 
-import "crspy2/licenses/database"
+import (
+	"crspy2/licenses/database"
+)
 
 var nameToPermission = map[string]database.Permission{
 	"Approve Staff":         database.ApproveStaffPermission,
