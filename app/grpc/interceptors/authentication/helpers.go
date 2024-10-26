@@ -2,6 +2,7 @@ package authentication
 
 import (
 	"context"
+	"crspy2/licenses/app/grpc/utils"
 	"crspy2/licenses/database"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -33,13 +34,18 @@ func RetrieveSessionFromContext(ctx context.Context) (*database.SessionModal, co
 	}
 
 	// Get session token from metadata
-	sessionTokens, ok := md["session_token"]
+	encryptedSessionToken, ok := md["session_token"]
 	if !ok {
 		return nil, nil, status.Errorf(codes.Unauthenticated, "Missing session token")
 	}
 
+	sessionToken, err := utils.DecryptToken(encryptedSessionToken[0])
+	if err != nil {
+		return nil, nil, status.Errorf(codes.Unauthenticated, "Failed to decrypt session token")
+	}
+
 	// Fetch the session from the database
-	session, err := database.Client.Session.Get(sessionTokens[0])
+	session, err := database.Client.Session.Get(sessionToken)
 	if err != nil {
 		return nil, nil, status.Errorf(codes.Unauthenticated, "Invalid session token")
 	}
@@ -60,12 +66,17 @@ func checkCSRFToken(ctx context.Context) error {
 		return status.Errorf(codes.InvalidArgument, "Missing metadata")
 	}
 
-	csrfToken, ok := md["csrf_token"]
+	encryptedCsrfToken, ok := md["csrf_token"]
 	if !ok {
 		return status.Errorf(codes.InvalidArgument, "Missing CSRF token")
 	}
 
-	isCsrfTokenInvalid := validateCSRFToken(ctx, csrfToken[0]) != nil
+	csrfToken, err := utils.DecryptToken(encryptedCsrfToken[0])
+	if err != nil {
+		return status.Errorf(codes.Unauthenticated, "Failed to decrypt session token")
+	}
+
+	isCsrfTokenInvalid := validateCSRFToken(ctx, csrfToken) != nil
 	if isCsrfTokenInvalid {
 		return status.Errorf(codes.PermissionDenied, "CSRF token validation failed")
 	}

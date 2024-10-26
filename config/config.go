@@ -8,9 +8,10 @@ import (
 
 type (
 	Config struct {
-		GrpcPort string
-		Database Database
-		SSL      SSL
+		GrpcPort            string
+		Database            Database
+		SSL                 SSL
+		CookieEncryptionKey string
 	}
 
 	SSL struct {
@@ -38,6 +39,7 @@ func LoadConfig(s *zap.SugaredLogger) {
 			Cert: os.Getenv("SSL_ENCRYPTION_CERT"),
 			Key:  os.Getenv("SSL_ENCRYPTION_KEY"),
 		},
+		CookieEncryptionKey: os.Getenv("COOKIE_ENCRYPTION_KEY"),
 	}
 
 	s.Infoln("Configuration files loaded")

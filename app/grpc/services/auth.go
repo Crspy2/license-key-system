@@ -62,11 +62,21 @@ func (s *AuthServer) Login(ctx context.Context, in *pf.LoginRequest) (*pf.LoginR
 		return nil, status.Errorf(codes.AlreadyExists, err.Error())
 	}
 
+	encryptedSessionToken, err := utils.EncryptToken(sessionInfo.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	encryptedCsrfToken, err := utils.EncryptToken(sessionInfo.CsrfToken)
+	if err != nil {
+		return nil, err
+	}
+
 	return &pf.LoginResponse{
 		Message: "Successfully created database session",
 		Data: &pf.LoginResponse_ResponseData{
-			SessionId: sessionInfo.Id,
-			CsrfToken: sessionInfo.CsrfToken,
+			SessionId: encryptedSessionToken,
+			CsrfToken: encryptedCsrfToken,
 		},
 	}, nil
 }
