@@ -5,7 +5,6 @@ import (
 	"crspy2/licenses/database"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
 	"time"
 )
@@ -37,12 +36,6 @@ func RetrieveSessionFromContext(ctx context.Context) (*database.SessionModal, co
 	sessionTokens, ok := md["session_token"]
 	if !ok {
 		return nil, nil, status.Errorf(codes.Unauthenticated, "Missing session token")
-	}
-
-	// Retrieve the client IP from the peer info
-	p, ok := peer.FromContext(ctx)
-	if !ok {
-		return nil, nil, status.Errorf(codes.Unauthenticated, "Unable to determine client IP")
 	}
 
 	// Fetch the session from the database
