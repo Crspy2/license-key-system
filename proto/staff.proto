@@ -9,24 +9,24 @@ import "globals.proto";
 message StaffObject {
   string id = 1;
   string name = 2;
-  string passwordHash = 3;
-  repeated string perms = 4;
-  bool approved = 5;
+  optional string image = 3;
+  string passwordHash = 4;
+  string role = 5;
+  repeated string perms = 6;
+  bool approved = 7;
 }
 
-message StaffId {
-  string id = 1;
+message StaffIdRequest {
+  string staffId = 1;
 }
 
 service Staff {
-  rpc ApproveStaff(StaffId) returns (ApprovalResponse);
+  rpc ApproveStaff(StaffIdRequest) returns (ApprovalResponse);
 
-  rpc GetStaff(StaffId) returns (StaffObject);
+  rpc GetStaff(StaffIdRequest) returns (StaffObject);
   rpc GetAllStaffStream(google.protobuf.Empty) returns (stream StaffObject);
 
   rpc SetStaffPermissions(MultiPermissionRequest) returns (StandardResponse);
-  rpc AddStaffPermission(SinglePermissionRequest) returns (StandardResponse);
-  rpc RemoveStaffPermission(SinglePermissionRequest) returns (StandardResponse);
 }
 
 message ApprovalResponse {

@@ -39,26 +39,15 @@ function deserialize_protofiles_MultiPermissionRequest(buffer_arg) {
   return staff_pb.MultiPermissionRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
-function serialize_protofiles_SinglePermissionRequest(arg) {
-  if (!(arg instanceof staff_pb.SinglePermissionRequest)) {
-    throw new Error('Expected argument of type protofiles.SinglePermissionRequest');
+function serialize_protofiles_StaffIdRequest(arg) {
+  if (!(arg instanceof staff_pb.StaffIdRequest)) {
+    throw new Error('Expected argument of type protofiles.StaffIdRequest');
   }
   return Buffer.from(arg.serializeBinary());
 }
 
-function deserialize_protofiles_SinglePermissionRequest(buffer_arg) {
-  return staff_pb.SinglePermissionRequest.deserializeBinary(new Uint8Array(buffer_arg));
-}
-
-function serialize_protofiles_StaffId(arg) {
-  if (!(arg instanceof staff_pb.StaffId)) {
-    throw new Error('Expected argument of type protofiles.StaffId');
-  }
-  return Buffer.from(arg.serializeBinary());
-}
-
-function deserialize_protofiles_StaffId(buffer_arg) {
-  return staff_pb.StaffId.deserializeBinary(new Uint8Array(buffer_arg));
+function deserialize_protofiles_StaffIdRequest(buffer_arg) {
+  return staff_pb.StaffIdRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_protofiles_StaffObject(arg) {
@@ -89,10 +78,10 @@ var StaffService = exports.StaffService = {
     path: '/protofiles.Staff/ApproveStaff',
     requestStream: false,
     responseStream: false,
-    requestType: staff_pb.StaffId,
+    requestType: staff_pb.StaffIdRequest,
     responseType: staff_pb.ApprovalResponse,
-    requestSerialize: serialize_protofiles_StaffId,
-    requestDeserialize: deserialize_protofiles_StaffId,
+    requestSerialize: serialize_protofiles_StaffIdRequest,
+    requestDeserialize: deserialize_protofiles_StaffIdRequest,
     responseSerialize: serialize_protofiles_ApprovalResponse,
     responseDeserialize: deserialize_protofiles_ApprovalResponse,
   },
@@ -100,10 +89,10 @@ var StaffService = exports.StaffService = {
     path: '/protofiles.Staff/GetStaff',
     requestStream: false,
     responseStream: false,
-    requestType: staff_pb.StaffId,
+    requestType: staff_pb.StaffIdRequest,
     responseType: staff_pb.StaffObject,
-    requestSerialize: serialize_protofiles_StaffId,
-    requestDeserialize: deserialize_protofiles_StaffId,
+    requestSerialize: serialize_protofiles_StaffIdRequest,
+    requestDeserialize: deserialize_protofiles_StaffIdRequest,
     responseSerialize: serialize_protofiles_StaffObject,
     responseDeserialize: deserialize_protofiles_StaffObject,
   },
@@ -126,28 +115,6 @@ var StaffService = exports.StaffService = {
     responseType: globals_pb.StandardResponse,
     requestSerialize: serialize_protofiles_MultiPermissionRequest,
     requestDeserialize: deserialize_protofiles_MultiPermissionRequest,
-    responseSerialize: serialize_protofiles_StandardResponse,
-    responseDeserialize: deserialize_protofiles_StandardResponse,
-  },
-  addStaffPermission: {
-    path: '/protofiles.Staff/AddStaffPermission',
-    requestStream: false,
-    responseStream: false,
-    requestType: staff_pb.SinglePermissionRequest,
-    responseType: globals_pb.StandardResponse,
-    requestSerialize: serialize_protofiles_SinglePermissionRequest,
-    requestDeserialize: deserialize_protofiles_SinglePermissionRequest,
-    responseSerialize: serialize_protofiles_StandardResponse,
-    responseDeserialize: deserialize_protofiles_StandardResponse,
-  },
-  removeStaffPermission: {
-    path: '/protofiles.Staff/RemoveStaffPermission',
-    requestStream: false,
-    responseStream: false,
-    requestType: staff_pb.SinglePermissionRequest,
-    responseType: globals_pb.StandardResponse,
-    requestSerialize: serialize_protofiles_SinglePermissionRequest,
-    requestDeserialize: deserialize_protofiles_SinglePermissionRequest,
     responseSerialize: serialize_protofiles_StandardResponse,
     responseDeserialize: deserialize_protofiles_StandardResponse,
   },

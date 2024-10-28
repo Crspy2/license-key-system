@@ -12,6 +12,7 @@ import (
 
 var UnauthedRoutes = []string{
 	"/protofiles.Auth/Login",
+	"/protofiles.Auth/Register",
 }
 
 func authorizeSession(ctx context.Context) (context.Context, error) {

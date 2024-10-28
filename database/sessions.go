@@ -96,15 +96,9 @@ func (s *Session) Create(session *SessionModal) error {
 	return nil
 }
 
-func (s *Session) Delete(id string) error {
-	sessionMatch := &SessionModal{
-		Id: id,
-	}
-
+func (s *Session) Delete(session *SessionModal) error {
 	err := s.db.
-		Preload(clause.Associations).
-		Where(sessionMatch).
-		Delete(sessionMatch).
+		Delete(session).
 		Error
 
 	if err != nil {

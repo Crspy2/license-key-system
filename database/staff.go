@@ -37,10 +37,21 @@ var permissionNames = map[Permission]string{
 	OffsetsPermission:      "Set/Edit Offsets",
 }
 
+type Role = string
+
+var (
+	RetiredStaffRole Role = "Retired Staff"
+	StaffRole        Role = "Staff"
+	SeniorStaffRole  Role = "Senior Staff"
+	LeadStaffRole    Role = "Lead Staff"
+)
+
 type StaffModel struct {
 	Id           string         `gorm:"unique;primaryKey" json:"id"`
 	Name         string         `gorm:"unique" json:"name"`
+	Image        string         `json:"image"`
 	PasswordHash string         `json:"password_hash"`
+	Role         Role           `gorm:"default:Staff" json:"role"`
 	Perms        int64          `gorm:"type:bigint" json:"perms"`
 	Approved     bool           `gorm:"default:false" json:"approved"`
 	CreatedAt    time.Time      `json:"created_at"`

@@ -1,9 +1,14 @@
-import { type ServiceError, credentials, ClientReadableStream } from '@grpc/grpc-js'
+import {
+    type ServiceError,
+    credentials,
+    ClientReadableStream,
+} from '@grpc/grpc-js'
 import { AuthClient } from '@/proto/auth_grpc_pb'
 import { Safe } from "@/server/safe"
 import { Status } from "@grpc/grpc-js/build/src/constants"
 import path from "node:path"
 import * as fs from "node:fs"
+import { StaffClient } from "@/proto/staff_grpc_pb";
 
 
 const loadSSLCertificate = () => {
@@ -18,6 +23,12 @@ export const authClient = new AuthClient(
     process.env.GRPC_SERVER_ADDRESS || 'localhost:8080',
     credentials.createSsl(fs.readFileSync(loadSSLCertificate()))
 );
+
+export const staffClient = new StaffClient(
+    process.env.GRPC_SERVER_ADDRESS || 'localhost:8080',
+    credentials.createSsl(fs.readFileSync(loadSSLCertificate()))
+);
+
 
 const map_error_code = (code: number): number => {
     switch (code) {
@@ -74,41 +85,41 @@ export function unary_callback<T>(
 export function stream_callback<T>(
     res: (value: Safe<T[]>) => void,
 ): (stream: ClientReadableStream<T>) => void {
-    return (stream) => {
-        const data: T[] = []
+    return (stream: ClientReadableStream<T>) => {
+        const dataBuffer: T[] = [];
 
-        stream.on('data', (chunk: T) => {
-            data.push(chunk)
-        })
+        stream.on("data", (data: T) => {
+            dataBuffer.push(data);
+        });
 
-        stream.on('error', (err: ServiceError) => {
+        stream.on("end", () => {
+            // Resolve with collected data on stream end
+            res({
+                success: true,
+                data: dataBuffer,
+                message: "Stream ended successfully",
+            });
+        });
+
+        stream.on("error", (err: ServiceError) => {
             if (err.code === Status.INVALID_ARGUMENT) {
                 try {
-                    const fields = JSON.parse(err.details) as { field: string; tag: string }[]
-                    res({
+                    const fields = JSON.parse(err.details) as { field: string; tag: string }[];
+                    return res({
                         success: false,
                         fields,
-                        message: 'Validation error',
+                        message: "Validation error",
                         code: map_error_code(err.code),
-                    })
-                    return
+                    });
                 } catch (_) {
                     //
                 }
             }
-            res({
+            return res({
                 success: false,
-                message: err.details,
+                message: err.details || "Stream error",
                 code: map_error_code(err.code),
-            })
-        })
-
-        stream.on('end', () => {
-            res({
-                success: true,
-                data,
-                message: 'Success',
-            })
-        })
-    }
+            });
+        });
+    };
 }

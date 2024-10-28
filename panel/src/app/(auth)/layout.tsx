@@ -6,7 +6,7 @@ const AuthLayout = async ({ children }: PropsWithChildren) => {
     const session = await getCurrentSession()
 
     if (session && session.success)
-        redirect("/panel")
+        redirect("/")
 
     return (
         <div className="bg-black min-h-screen w-full">

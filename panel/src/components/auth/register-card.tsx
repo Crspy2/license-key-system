@@ -36,7 +36,7 @@ export const RegisterCard = () => {
                 return
             }
             toast.success(data.message)
-            router.push("/panel")
+            router.push("/")
             return
         })
     }
@@ -116,7 +116,7 @@ export const RegisterCard = () => {
                         </button>
                         <p className="flex gap-1.5 justify-center text-center text-sm text-zinc-400">
                             Have an account?
-                            <Link href="/auth/login"
+                            <Link href="/login"
                                className="font-medium text-white decoration-white/20 underline-offset-4 outline-none hover:underline focus-visible:underline">
                                 Sign In
                             </Link>

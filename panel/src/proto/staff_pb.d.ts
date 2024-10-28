@@ -13,8 +13,15 @@ export class StaffObject extends jspb.Message {
     setId(value: string): StaffObject;
     getName(): string;
     setName(value: string): StaffObject;
+
+    hasImage(): boolean;
+    clearImage(): void;
+    getImage(): string | undefined;
+    setImage(value: string): StaffObject;
     getPasswordhash(): string;
     setPasswordhash(value: string): StaffObject;
+    getRole(): string;
+    setRole(value: string): StaffObject;
     clearPermsList(): void;
     getPermsList(): Array<string>;
     setPermsList(value: Array<string>): StaffObject;
@@ -36,29 +43,31 @@ export namespace StaffObject {
     export type AsObject = {
         id: string,
         name: string,
+        image?: string,
         passwordhash: string,
+        role: string,
         permsList: Array<string>,
         approved: boolean,
     }
 }
 
-export class StaffId extends jspb.Message { 
-    getId(): string;
-    setId(value: string): StaffId;
+export class StaffIdRequest extends jspb.Message { 
+    getStaffid(): string;
+    setStaffid(value: string): StaffIdRequest;
 
     serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): StaffId.AsObject;
-    static toObject(includeInstance: boolean, msg: StaffId): StaffId.AsObject;
+    toObject(includeInstance?: boolean): StaffIdRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: StaffIdRequest): StaffIdRequest.AsObject;
     static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
     static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: StaffId, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): StaffId;
-    static deserializeBinaryFromReader(message: StaffId, reader: jspb.BinaryReader): StaffId;
+    static serializeBinaryToWriter(message: StaffIdRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): StaffIdRequest;
+    static deserializeBinaryFromReader(message: StaffIdRequest, reader: jspb.BinaryReader): StaffIdRequest;
 }
 
-export namespace StaffId {
+export namespace StaffIdRequest {
     export type AsObject = {
-        id: string,
+        staffid: string,
     }
 }
 

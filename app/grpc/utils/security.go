@@ -57,7 +57,7 @@ func GenerateSSLCert(l *zap.SugaredLogger) (credentials.TransportCredentials, er
 func getEncryptionKey() ([]byte, error) {
 	keyBase64 := config.Conf.CookieEncryptionKey
 	if keyBase64 == "" {
-		return nil, errors.New("Encryption Key not set")
+		return nil, errors.New("encryption Key not set")
 	}
 
 	key, err := base64.StdEncoding.DecodeString(keyBase64)

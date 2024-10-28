@@ -13,8 +13,8 @@ type StaffServer struct {
 	pf.UnimplementedStaffServer
 }
 
-func (s *StaffServer) ApproveStaff(_ context.Context, in *pf.StaffId) (*pf.ApprovalResponse, error) {
-	staffId := in.GetId()
+func (s *StaffServer) ApproveStaff(_ context.Context, in *pf.StaffIdRequest) (*pf.ApprovalResponse, error) {
+	staffId := in.GetStaffId()
 
 	if staffId == "" {
 		return nil, status.Errorf(codes.InvalidArgument, "Staff Id is required")
@@ -29,15 +29,17 @@ func (s *StaffServer) ApproveStaff(_ context.Context, in *pf.StaffId) (*pf.Appro
 		Staff: &pf.StaffObject{
 			Id:           staff.Id,
 			Name:         staff.Name,
+			Image:        &staff.Image,
 			PasswordHash: staff.PasswordHash,
+			Role:         staff.Role,
 			Perms:        staff.GetPermissionNames(),
 			Approved:     staff.Approved,
 		},
 	}, nil
 }
 
-func (s *StaffServer) GetStaff(_ context.Context, in *pf.StaffId) (*pf.StaffObject, error) {
-	staffId := in.GetId()
+func (s *StaffServer) GetStaff(_ context.Context, in *pf.StaffIdRequest) (*pf.StaffObject, error) {
+	staffId := in.GetStaffId()
 
 	if staffId == "" {
 		return nil, status.Errorf(codes.InvalidArgument, "Staff Id is required")
@@ -50,7 +52,9 @@ func (s *StaffServer) GetStaff(_ context.Context, in *pf.StaffId) (*pf.StaffObje
 	return &pf.StaffObject{
 		Id:           staff.Id,
 		Name:         staff.Name,
+		Image:        &staff.Image,
 		PasswordHash: staff.PasswordHash,
+		Role:         staff.Role,
 		Perms:        staff.GetPermissionNames(),
 		Approved:     staff.Approved,
 	}, nil
@@ -72,7 +76,9 @@ func (s *StaffServer) GetAllStaffStream(_ *empty.Empty, stream pf.Staff_GetAllSt
 		staffMember := &pf.StaffObject{
 			Id:           member.Id,
 			Name:         member.Name,
+			Image:        &member.Image,
 			PasswordHash: member.PasswordHash,
+			Role:         member.Role,
 			Perms:        member.GetPermissionNames(),
 			Approved:     member.Approved,
 		}
@@ -109,50 +115,5 @@ func (s *StaffServer) SetStaffPermissions(_ context.Context, in *pf.MultiPermiss
 	}
 	return &pf.StandardResponse{
 		Message: "Successfully overwrote staff permissions",
-	}, nil
-}
-
-func (s *StaffServer) AddStaffPermission(_ context.Context, in *pf.SinglePermissionRequest) (*pf.StandardResponse, error) {
-	staffId := in.GetStaffId()
-
-	if staffId == "" {
-		return nil, status.Errorf(codes.InvalidArgument, "Staff Id is required")
-	}
-
-	perm := in.GetPermission()
-	if perm == 0 {
-		return nil, status.Errorf(codes.InvalidArgument, "You must specify a permission to add")
-	}
-
-	err := database.Client.Staff.AddPermission(staffId, database.Permission(perm))
-	if err != nil {
-		return nil, status.Errorf(codes.NotFound, err.Error())
-	}
-
-	return &pf.StandardResponse{
-		Message: "Successfully added a permission to the staff member",
-	}, nil
-}
-
-func (s *StaffServer) RemoveStaffPermission(_ context.Context, in *pf.SinglePermissionRequest) (*pf.StandardResponse, error) {
-	staffId := in.GetStaffId()
-
-	if staffId == "" {
-		return nil, status.Errorf(codes.InvalidArgument, "Staff Id is required")
-	}
-
-	perm := in.GetPermission()
-
-	if perm == 0 {
-		return nil, status.Errorf(codes.InvalidArgument, "You must specify a permission to add")
-	}
-
-	err := database.Client.Staff.RemovePermission(staffId, database.Permission(perm))
-	if err != nil {
-		return nil, status.Errorf(codes.NotFound, err.Error())
-	}
-
-	return &pf.StandardResponse{
-		Message: "Successfully removed a permission to the staff member",
 	}, nil
 }

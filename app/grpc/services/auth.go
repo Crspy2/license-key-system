@@ -72,6 +72,10 @@ func (s *AuthServer) Login(ctx context.Context, in *pf.LoginRequest) (*pf.LoginR
 		return nil, err
 	}
 
+	if !sessionInfo.Staff.Approved {
+		return nil, status.Errorf(codes.PermissionDenied, "Your account has not yet been approved")
+	}
+
 	return &pf.LoginResponse{
 		Message: "Successfully created database session",
 		Data: &pf.LoginResponse_ResponseData{
@@ -117,7 +121,7 @@ func (s *AuthServer) Logout(ctx context.Context, _ *empty.Empty) (*pf.StandardRe
 		return nil, status.Errorf(codes.Unauthenticated, "No session information found")
 	}
 
-	err := database.Client.Session.Delete(session.Id)
+	err := database.Client.Session.Delete(session)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
@@ -142,7 +146,9 @@ func (s *AuthServer) GetSessionInfo(ctx context.Context, _ *empty.Empty) (*pf.Si
 			Staff: &pf.StaffObject{
 				Id:           session.Staff.Id,
 				Name:         session.Staff.Name,
+				Image:        &session.Staff.Image,
 				PasswordHash: session.Staff.PasswordHash,
+				Role:         session.Staff.Role,
 				Approved:     session.Staff.Approved,
 				Perms:        session.Staff.GetPermissionNames(),
 			},
@@ -199,7 +205,12 @@ func (s *AuthServer) RevokeSession(ctx context.Context, in *pf.SessionRevokeRequ
 		return nil, status.Errorf(codes.InvalidArgument, "Invalid procedure call")
 	}
 
-	err := database.Client.Session.Delete(sessionId)
+	session, err := database.Client.Session.Get(sessionId)
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, err.Error())
+	}
+
+	err = database.Client.Session.Delete(session)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
