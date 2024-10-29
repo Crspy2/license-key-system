@@ -20,6 +20,10 @@ func (s *StaffServer) SetStaffAccess(ctx context.Context, in *pf.StaffAccessRequ
 		return nil, status.Errorf(codes.Unauthenticated, "No session information found")
 	}
 
+	if !session.Staff.HasPermission(database.ManageStaffPermission) {
+		return nil, status.Errorf(codes.PermissionDenied, "You do not have permission to perform this action")
+	}
+
 	staffId := in.GetStaffId()
 	approved := in.GetApproved()
 
@@ -113,6 +117,10 @@ func (s *StaffServer) SetStaffPermissions(ctx context.Context, in *pf.MultiPermi
 		return nil, status.Errorf(codes.Unauthenticated, "No session information found")
 	}
 
+	if !session.Staff.HasPermission(database.ManageStaffPermission) {
+		return nil, status.Errorf(codes.PermissionDenied, "You do not have permission to perform this action")
+	}
+
 	staffId := in.GetStaffId()
 
 	if staffId == "" {
@@ -158,6 +166,10 @@ func (s *StaffServer) SetStaffRole(ctx context.Context, in *pf.StaffRoleRequest)
 	session := ctx.Value("session").(*database.SessionModal)
 	if session == nil {
 		return nil, status.Errorf(codes.Unauthenticated, "No session information found")
+	}
+
+	if !session.Staff.HasPermission(database.ManageStaffPermission) {
+		return nil, status.Errorf(codes.PermissionDenied, "You do not have permission to perform this action")
 	}
 
 	staffId := in.GetStaffId()
