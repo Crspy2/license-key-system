@@ -13,3 +13,13 @@ export const RegisterSchema = z.object({
         message: 'Passwords must match',
         path: ['confirmPassword'],
 });
+
+export const PermissionsSchema = z.object({
+    staffId: z.string(),
+    permissions: z.number().int().array(),
+})
+
+export const RoleSchema = z.object({
+    staffId: z.string(),
+    role: z.number().int(),
+})

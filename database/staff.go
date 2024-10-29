@@ -2,6 +2,7 @@ package database
 
 import (
 	"errors"
+	"fmt"
 	"go.jetify.com/typeid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -12,47 +13,48 @@ import (
 type Permission int64
 
 const (
-	ApproveStaffPermission Permission = 1 << iota // 1 << 0 == 1
-	HWIDResetPermission                           // 1 << 1 == 2
-	PassResetPermission                           // 1 << 2 == 4
-	ViewKeysPermission                            // 1 << 3 == 8
-	KeyGenPermission                              // 1 << 4 == 16
-	CompensatePermission                          // 1 << 5 == 32
-	StatusChangePermission                        // 1 << 6 == 64
-	ProductsPermission                            // 1 << 7 == 128
-	UserActionsPermission                         // 1 << 8 == 256
-	OffsetsPermission                             // 1 << 9 == 512
+	DefaultPermission Permission = 1 << iota
+	HWIDResetPermission
+	PassResetPermission
+	CompensationPermission
+	ChangeStatusPermission
+	ManageProductsPermission
+	DeleteUserPermission
+	KeyGenPermission
+	ManageStaffPermission
 )
 
 var permissionNames = map[Permission]string{
-	ApproveStaffPermission: "Approve Staff",
-	HWIDResetPermission:    "Reset HWID",
-	PassResetPermission:    "Reset Password",
-	ViewKeysPermission:     "View License Keys",
-	KeyGenPermission:       "Generate Keys",
-	CompensatePermission:   "Compensate Keys",
-	StatusChangePermission: "Change Product Status",
-	ProductsPermission:     "Manage Products",
-	UserActionsPermission:  "Manage User Actions",
-	OffsetsPermission:      "Set/Edit Offsets",
+	DefaultPermission:      "Default",
+	HWIDResetPermission:    "HWIDReset",
+	PassResetPermission:    "PasswordReset",
+	CompensationPermission: "Compensate",
+	ChangeStatusPermission: "ProductStatus",
+
+	ManageProductsPermission: "ManageProducts",
+
+	DeleteUserPermission:  "DeleteUsers",
+	KeyGenPermission:      "GenerateKeys",
+	ManageStaffPermission: "ManageStaff",
 }
 
-type Role = string
+type Role = int32
 
-var (
-	RetiredStaffRole Role = "Retired Staff"
-	StaffRole        Role = "Staff"
-	SeniorStaffRole  Role = "Senior Staff"
-	LeadStaffRole    Role = "Lead Staff"
+const (
+	StaffRole Role = iota
+	SeniorStaffRole
+	LeadStaffRole
+	DevRole
+	OwnerRole
 )
 
 type StaffModel struct {
 	Id           string         `gorm:"unique;primaryKey" json:"id"`
 	Name         string         `gorm:"unique" json:"name"`
 	Image        string         `json:"image"`
+	Role         Role           `gorm:"default:0" json:"role"`
 	PasswordHash string         `json:"password_hash"`
-	Role         Role           `gorm:"default:Staff" json:"role"`
-	Perms        int64          `gorm:"type:bigint" json:"perms"`
+	Perms        Permission     `gorm:"type:bigint" json:"perms"`
 	Approved     bool           `gorm:"default:false" json:"approved"`
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
@@ -74,7 +76,7 @@ func (sm *StaffModel) AfterUpdate(tx *gorm.DB) error {
 }
 
 func (sm *StaffModel) HasPermission(permission Permission) bool {
-	return sm.Perms&int64(permission) != 0
+	return sm.Perms&permission != 0
 }
 
 func (sm *StaffModel) GetPermissionNames() []string {
@@ -87,12 +89,27 @@ func (sm *StaffModel) GetPermissionNames() []string {
 	return perms
 }
 
-func (sm *StaffModel) UpdatePermissions(permissions ...Permission) {
-	var newPerms int64
+func (sm *StaffModel) UpdatePermissions(permissions ...Permission) Permission {
+	var newPerms Permission
 	for _, permission := range permissions {
-		newPerms |= int64(permission)
+		newPerms |= permission
 	}
-	sm.Perms = newPerms
+	return newPerms
+}
+
+func (sm *StaffModel) HasHigherPermissions(otherStaff StaffModel) bool {
+	if sm.Role > otherStaff.Role {
+		return true
+	} else if sm.Role == otherStaff.Role {
+		if sm.Perms > otherStaff.Perms {
+			return true
+		}
+	}
+	return false
+}
+
+func (sm *StaffModel) HasHigherRole(otherStaff StaffModel) bool {
+	return sm.Role > otherStaff.Role
 }
 
 type Staff struct {
@@ -194,7 +211,7 @@ func (s *Staff) Authenticate(name, password string) (*StaffModel, error) {
 	return &staff, nil
 }
 
-func (s *Staff) ApproveStaff(id string) (*StaffModel, error) {
+func (s *Staff) SetStaffAccess(id string, approved bool) (*StaffModel, error) {
 	var staff StaffModel
 
 	err := s.db.
@@ -202,15 +219,24 @@ func (s *Staff) ApproveStaff(id string) (*StaffModel, error) {
 		First(&staff).
 		Error
 
+	fmt.Println(staff)
+
 	if err != nil {
 		return nil, err
 	}
 
-	staff.Approved = true
+	fmt.Println(approved)
+	staff.Approved = approved
+	fmt.Println(staff)
 
-	staff.UpdatePermissions(HWIDResetPermission, PassResetPermission, ViewKeysPermission)
+	if approved {
+		staff.Perms = staff.UpdatePermissions(DefaultPermission, HWIDResetPermission, PassResetPermission)
+	} else {
+		staff.Perms = staff.UpdatePermissions(0)
+	}
 
-	s.db.Save(&staff)
+	s.db.Where(&StaffModel{Id: id}).Save(&staff)
+	//s.db.Save(&staff)
 
 	return &staff, nil
 }
@@ -222,7 +248,7 @@ func (s *Staff) AddPermission(id string, permission Permission) error {
 	if err != nil {
 		return err
 	}
-	staff.Perms |= int64(permission) // Set the permission bit
+	staff.Perms |= permission // Set the permission bit
 
 	s.db.Save(&staff)
 
@@ -236,28 +262,42 @@ func (s *Staff) RemovePermission(id string, permission Permission) error {
 	if err != nil {
 		return err
 	}
-	staff.Perms &= ^int64(permission) // Clear the permission bit
+	staff.Perms &= ^permission // Clear the permission bit
 
 	s.db.Save(&staff)
 
 	return nil
 }
 
-func (s *Staff) SetPermissions(id string, permissions []Permission) error {
+func (s *Staff) SetPermissions(id string, permissions []Permission) (*StaffModel, error) {
 	var staff StaffModel
 
 	err := s.db.Where(&StaffModel{Id: id}).First(&staff).Error
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	var newPerms int64
+	var newPerms Permission
 	for _, permission := range permissions {
-		newPerms |= int64(permission)
+		newPerms |= permission
 	}
 	staff.Perms = newPerms
 
 	s.db.Save(&staff)
 
-	return nil
+	return &staff, nil
+}
+
+func (s *Staff) SetRole(id string, role Role) (*StaffModel, error) {
+	var staff StaffModel
+
+	err := s.db.Where(&StaffModel{Id: id}).First(&staff).Error
+	if err != nil {
+		return nil, err
+	}
+
+	staff.Role = role
+	s.db.Save(&staff)
+
+	return &staff, nil
 }

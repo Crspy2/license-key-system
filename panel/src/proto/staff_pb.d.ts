@@ -13,15 +13,13 @@ export class StaffObject extends jspb.Message {
     setId(value: string): StaffObject;
     getName(): string;
     setName(value: string): StaffObject;
+    getRole(): number;
+    setRole(value: number): StaffObject;
 
     hasImage(): boolean;
     clearImage(): void;
     getImage(): string | undefined;
     setImage(value: string): StaffObject;
-    getPasswordhash(): string;
-    setPasswordhash(value: string): StaffObject;
-    getRole(): string;
-    setRole(value: string): StaffObject;
     clearPermsList(): void;
     getPermsList(): Array<string>;
     setPermsList(value: Array<string>): StaffObject;
@@ -43,9 +41,8 @@ export namespace StaffObject {
     export type AsObject = {
         id: string,
         name: string,
+        role: number,
         image?: string,
-        passwordhash: string,
-        role: string,
         permsList: Array<string>,
         approved: boolean,
     }
@@ -68,6 +65,29 @@ export class StaffIdRequest extends jspb.Message {
 export namespace StaffIdRequest {
     export type AsObject = {
         staffid: string,
+    }
+}
+
+export class StaffAccessRequest extends jspb.Message { 
+    getStaffid(): string;
+    setStaffid(value: string): StaffAccessRequest;
+    getApproved(): boolean;
+    setApproved(value: boolean): StaffAccessRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): StaffAccessRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: StaffAccessRequest): StaffAccessRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: StaffAccessRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): StaffAccessRequest;
+    static deserializeBinaryFromReader(message: StaffAccessRequest, reader: jspb.BinaryReader): StaffAccessRequest;
+}
+
+export namespace StaffAccessRequest {
+    export type AsObject = {
+        staffid: string,
+        approved: boolean,
     }
 }
 
@@ -142,5 +162,28 @@ export namespace SinglePermissionRequest {
     export type AsObject = {
         staffid: string,
         permission: number,
+    }
+}
+
+export class StaffRoleRequest extends jspb.Message { 
+    getStaffid(): string;
+    setStaffid(value: string): StaffRoleRequest;
+    getRole(): number;
+    setRole(value: number): StaffRoleRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): StaffRoleRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: StaffRoleRequest): StaffRoleRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: StaffRoleRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): StaffRoleRequest;
+    static deserializeBinaryFromReader(message: StaffRoleRequest, reader: jspb.BinaryReader): StaffRoleRequest;
+}
+
+export namespace StaffRoleRequest {
+    export type AsObject = {
+        staffid: string,
+        role: number,
     }
 }

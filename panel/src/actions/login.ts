@@ -49,7 +49,7 @@ export const login = async  (values: z.infer<typeof LoginSchema>) => {
     }
 
     if (r.success) {
-        return { success: r.success, message: r.data.toObject().message }
+        return { success: r.success, message: r.data.getMessage() }
     }
     return { success: r.success, message: r.message }
 }

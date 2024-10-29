@@ -27,14 +27,11 @@ import {
 } from "@/components/ui/sidebar"
 import { FaUpload } from "react-icons/fa6"
 import { IoLogOut } from "react-icons/io5"
-import {logOut} from "@/server/services/session";
-import toast from "react-hot-toast";
+import { logOut } from "@/server/services/session";
+import { toast } from "sonner"
+import { GetUserRoleText } from "@/lib/utils";
 
-export function NavUser({
-  staff,
-}: {
-  staff: StaffObject.AsObject
-}) {
+export function NavUser({ staff }: { staff: StaffObject.AsObject }) {
   const { isMobile } = useSidebar()
   const router = useRouter()
 
@@ -53,7 +50,7 @@ export function NavUser({
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">{staff.name}</span>
-                <span className="truncate text-xs">{staff.role}</span>
+                <span className="truncate text-xs">{GetUserRoleText(staff.role)}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -72,7 +69,7 @@ export function NavUser({
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">{staff.name}</span>
-                  <span className="truncate text-xs">{staff.role}</span>
+                  <span className="truncate text-xs">{GetUserRoleText(staff.role)}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -86,7 +83,7 @@ export function NavUser({
               const res = await logOut()
               if (res.success) {
                 toast.success(res.message)
-                router.refresh()
+                router.push("/login")
                 return
               }
               return toast.error("Unable to revoke session")

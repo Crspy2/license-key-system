@@ -144,13 +144,12 @@ func (s *AuthServer) GetSessionInfo(ctx context.Context, _ *empty.Empty) (*pf.Si
 			IpAddress: session.IpAddress,
 			UserAgent: session.UserAgent,
 			Staff: &pf.StaffObject{
-				Id:           session.Staff.Id,
-				Name:         session.Staff.Name,
-				Image:        &session.Staff.Image,
-				PasswordHash: session.Staff.PasswordHash,
-				Role:         session.Staff.Role,
-				Approved:     session.Staff.Approved,
-				Perms:        session.Staff.GetPermissionNames(),
+				Id:       session.Staff.Id,
+				Name:     session.Staff.Name,
+				Role:     session.Staff.Role,
+				Image:    &session.Staff.Image,
+				Perms:    session.Staff.GetPermissionNames(),
+				Approved: session.Staff.Approved,
 			},
 		},
 	}, nil
@@ -183,11 +182,12 @@ func (s *AuthServer) GetUserSessionsStream(in *pf.MultiSessionRequest, stream pf
 			IpAddress: session.IpAddress,
 			UserAgent: session.UserAgent,
 			Staff: &pf.StaffObject{
-				Id:           session.Staff.Id,
-				Name:         session.Staff.Name,
-				PasswordHash: session.Staff.PasswordHash,
-				Approved:     session.Staff.Approved,
-				Perms:        session.Staff.GetPermissionNames(),
+				Id:       session.Staff.Id,
+				Name:     session.Staff.Name,
+				Role:     session.Staff.Role,
+				Image:    &session.Staff.Image,
+				Perms:    session.Staff.GetPermissionNames(),
+				Approved: session.Staff.Approved,
 			},
 		}
 

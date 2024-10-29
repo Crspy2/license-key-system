@@ -39,6 +39,17 @@ function deserialize_protofiles_MultiPermissionRequest(buffer_arg) {
   return staff_pb.MultiPermissionRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_protofiles_StaffAccessRequest(arg) {
+  if (!(arg instanceof staff_pb.StaffAccessRequest)) {
+    throw new Error('Expected argument of type protofiles.StaffAccessRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_protofiles_StaffAccessRequest(buffer_arg) {
+  return staff_pb.StaffAccessRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_protofiles_StaffIdRequest(arg) {
   if (!(arg instanceof staff_pb.StaffIdRequest)) {
     throw new Error('Expected argument of type protofiles.StaffIdRequest');
@@ -61,6 +72,17 @@ function deserialize_protofiles_StaffObject(buffer_arg) {
   return staff_pb.StaffObject.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_protofiles_StaffRoleRequest(arg) {
+  if (!(arg instanceof staff_pb.StaffRoleRequest)) {
+    throw new Error('Expected argument of type protofiles.StaffRoleRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_protofiles_StaffRoleRequest(buffer_arg) {
+  return staff_pb.StaffRoleRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_protofiles_StandardResponse(arg) {
   if (!(arg instanceof globals_pb.StandardResponse)) {
     throw new Error('Expected argument of type protofiles.StandardResponse');
@@ -74,14 +96,14 @@ function deserialize_protofiles_StandardResponse(buffer_arg) {
 
 
 var StaffService = exports.StaffService = {
-  approveStaff: {
-    path: '/protofiles.Staff/ApproveStaff',
+  setStaffAccess: {
+    path: '/protofiles.Staff/SetStaffAccess',
     requestStream: false,
     responseStream: false,
-    requestType: staff_pb.StaffIdRequest,
+    requestType: staff_pb.StaffAccessRequest,
     responseType: staff_pb.ApprovalResponse,
-    requestSerialize: serialize_protofiles_StaffIdRequest,
-    requestDeserialize: deserialize_protofiles_StaffIdRequest,
+    requestSerialize: serialize_protofiles_StaffAccessRequest,
+    requestDeserialize: deserialize_protofiles_StaffAccessRequest,
     responseSerialize: serialize_protofiles_ApprovalResponse,
     responseDeserialize: deserialize_protofiles_ApprovalResponse,
   },
@@ -115,6 +137,17 @@ var StaffService = exports.StaffService = {
     responseType: globals_pb.StandardResponse,
     requestSerialize: serialize_protofiles_MultiPermissionRequest,
     requestDeserialize: deserialize_protofiles_MultiPermissionRequest,
+    responseSerialize: serialize_protofiles_StandardResponse,
+    responseDeserialize: deserialize_protofiles_StandardResponse,
+  },
+  setStaffRole: {
+    path: '/protofiles.Staff/SetStaffRole',
+    requestStream: false,
+    responseStream: false,
+    requestType: staff_pb.StaffRoleRequest,
+    responseType: globals_pb.StandardResponse,
+    requestSerialize: serialize_protofiles_StaffRoleRequest,
+    requestDeserialize: deserialize_protofiles_StaffRoleRequest,
     responseSerialize: serialize_protofiles_StandardResponse,
     responseDeserialize: deserialize_protofiles_StandardResponse,
   },

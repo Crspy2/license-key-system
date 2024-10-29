@@ -9,6 +9,7 @@ import { Status } from "@grpc/grpc-js/build/src/constants"
 import path from "node:path"
 import * as fs from "node:fs"
 import { StaffClient } from "@/proto/staff_grpc_pb";
+import { StaffObject } from "@/proto/staff_pb";
 
 
 const loadSSLCertificate = () => {
@@ -83,17 +84,16 @@ export function unary_callback<T>(
 
 
 export function stream_callback<T>(
-    res: (value: Safe<T[]>) => void,
+    res: (value: Safe<StaffObject[]>) => void,
 ): (stream: ClientReadableStream<T>) => void {
     return (stream: ClientReadableStream<T>) => {
-        const dataBuffer: T[] = [];
+        const dataBuffer: StaffObject[] = [];
 
-        stream.on("data", (data: T) => {
+        stream.on("data", (data: any) => {
             dataBuffer.push(data);
         });
 
         stream.on("end", () => {
-            // Resolve with collected data on stream end
             res({
                 success: true,
                 data: dataBuffer,
@@ -102,20 +102,7 @@ export function stream_callback<T>(
         });
 
         stream.on("error", (err: ServiceError) => {
-            if (err.code === Status.INVALID_ARGUMENT) {
-                try {
-                    const fields = JSON.parse(err.details) as { field: string; tag: string }[];
-                    return res({
-                        success: false,
-                        fields,
-                        message: "Validation error",
-                        code: map_error_code(err.code),
-                    });
-                } catch (_) {
-                    //
-                }
-            }
-            return res({
+            res({
                 success: false,
                 message: err.details || "Stream error",
                 code: map_error_code(err.code),

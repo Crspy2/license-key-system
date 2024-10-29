@@ -4,6 +4,7 @@ import (
 	"context"
 	"crspy2/licenses/app/grpc/utils"
 	"crspy2/licenses/database"
+	"fmt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -20,6 +21,8 @@ func authorizeSession(ctx context.Context) (context.Context, error) {
 	if err != nil {
 		return nil, status.Errorf(codes.Unauthenticated, "Authentication failed: %v", err)
 	}
+
+	fmt.Println(session)
 
 	if !session.Staff.Approved {
 		return nil, status.Errorf(codes.PermissionDenied, "Your account has not yet been approved")

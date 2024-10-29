@@ -4,6 +4,7 @@ import (
 	"context"
 	"crspy2/licenses/database"
 	pf "crspy2/licenses/proto/protofiles"
+	"fmt"
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -13,27 +14,45 @@ type StaffServer struct {
 	pf.UnimplementedStaffServer
 }
 
-func (s *StaffServer) ApproveStaff(_ context.Context, in *pf.StaffIdRequest) (*pf.ApprovalResponse, error) {
+func (s *StaffServer) SetStaffAccess(ctx context.Context, in *pf.StaffAccessRequest) (*pf.ApprovalResponse, error) {
+	session := ctx.Value("session").(*database.SessionModal)
+	if session == nil {
+		return nil, status.Errorf(codes.Unauthenticated, "No session information found")
+	}
+
 	staffId := in.GetStaffId()
+	approved := in.GetApproved()
 
 	if staffId == "" {
 		return nil, status.Errorf(codes.InvalidArgument, "Staff Id is required")
 	}
 
-	staff, err := database.Client.Staff.ApproveStaff(staffId)
+	if session.Staff.Id == staffId {
+		return nil, status.Errorf(codes.PermissionDenied, "You cannot modify your own permissions")
+	}
+
+	staff, err := database.Client.Staff.GetById(staffId)
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "Staff member could not be found")
+	}
+
+	if !session.Staff.HasHigherPermissions(*staff) {
+		return nil, status.Errorf(codes.PermissionDenied, "You do not have permission to perform this action")
+	}
+
+	staff, err = database.Client.Staff.SetStaffAccess(staffId, approved)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
 	return &pf.ApprovalResponse{
-		Message: "Successfully created database session",
+		Message: fmt.Sprintf("%s's access to the panel has been updated", staff.Name),
 		Staff: &pf.StaffObject{
-			Id:           staff.Id,
-			Name:         staff.Name,
-			Image:        &staff.Image,
-			PasswordHash: staff.PasswordHash,
-			Role:         staff.Role,
-			Perms:        staff.GetPermissionNames(),
-			Approved:     staff.Approved,
+			Id:       staff.Id,
+			Name:     staff.Name,
+			Role:     staff.Role,
+			Image:    &staff.Image,
+			Perms:    staff.GetPermissionNames(),
+			Approved: staff.Approved,
 		},
 	}, nil
 }
@@ -50,13 +69,12 @@ func (s *StaffServer) GetStaff(_ context.Context, in *pf.StaffIdRequest) (*pf.St
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
 	return &pf.StaffObject{
-		Id:           staff.Id,
-		Name:         staff.Name,
-		Image:        &staff.Image,
-		PasswordHash: staff.PasswordHash,
-		Role:         staff.Role,
-		Perms:        staff.GetPermissionNames(),
-		Approved:     staff.Approved,
+		Id:       staff.Id,
+		Name:     staff.Name,
+		Role:     staff.Role,
+		Image:    &staff.Image,
+		Perms:    staff.GetPermissionNames(),
+		Approved: staff.Approved,
 	}, nil
 }
 
@@ -74,13 +92,12 @@ func (s *StaffServer) GetAllStaffStream(_ *empty.Empty, stream pf.Staff_GetAllSt
 		}
 
 		staffMember := &pf.StaffObject{
-			Id:           member.Id,
-			Name:         member.Name,
-			Image:        &member.Image,
-			PasswordHash: member.PasswordHash,
-			Role:         member.Role,
-			Perms:        member.GetPermissionNames(),
-			Approved:     member.Approved,
+			Id:       member.Id,
+			Name:     member.Name,
+			Role:     member.Role,
+			Image:    &member.Image,
+			Perms:    member.GetPermissionNames(),
+			Approved: member.Approved,
 		}
 
 		if err = stream.Send(staffMember); err != nil {
@@ -90,11 +107,30 @@ func (s *StaffServer) GetAllStaffStream(_ *empty.Empty, stream pf.Staff_GetAllSt
 	return nil
 }
 
-func (s *StaffServer) SetStaffPermissions(_ context.Context, in *pf.MultiPermissionRequest) (*pf.StandardResponse, error) {
+func (s *StaffServer) SetStaffPermissions(ctx context.Context, in *pf.MultiPermissionRequest) (*pf.StandardResponse, error) {
+	session := ctx.Value("session").(*database.SessionModal)
+	if session == nil {
+		return nil, status.Errorf(codes.Unauthenticated, "No session information found")
+	}
+
 	staffId := in.GetStaffId()
 
 	if staffId == "" {
 		return nil, status.Errorf(codes.InvalidArgument, "Staff Id is required")
+	}
+
+	if session.Staff.Id == staffId {
+		return nil, status.Errorf(codes.PermissionDenied, "You cannot modify your own permissions")
+	}
+
+	staff, err := database.Client.Staff.GetById(staffId)
+
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "Staff member could not be found")
+	}
+
+	if !session.Staff.HasHigherPermissions(*staff) {
+		return nil, status.Errorf(codes.PermissionDenied, "You do not have permission to perform this action")
 	}
 
 	perms := in.GetPermissions()
@@ -109,11 +145,49 @@ func (s *StaffServer) SetStaffPermissions(_ context.Context, in *pf.MultiPermiss
 		permissions = append(permissions, database.Permission(perm))
 	}
 
-	err := database.Client.Staff.SetPermissions(staffId, permissions)
+	staff, err = database.Client.Staff.SetPermissions(staffId, permissions)
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, err.Error())
+		return nil, status.Errorf(codes.NotFound, "Unable to set user's permissions")
 	}
 	return &pf.StandardResponse{
-		Message: "Successfully overwrote staff permissions",
+		Message: fmt.Sprintf("Successfully overwrote permissions for %s", staff.Name),
+	}, nil
+}
+
+func (s *StaffServer) SetStaffRole(ctx context.Context, in *pf.StaffRoleRequest) (*pf.StandardResponse, error) {
+	session := ctx.Value("session").(*database.SessionModal)
+	if session == nil {
+		return nil, status.Errorf(codes.Unauthenticated, "No session information found")
+	}
+
+	staffId := in.GetStaffId()
+
+	if staffId == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "A staff id is required")
+	}
+	if session.Staff.Id == staffId {
+		return nil, status.Errorf(codes.PermissionDenied, "You cannot modify your own role")
+	}
+
+	staff, err := database.Client.Staff.GetById(staffId)
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "Staff member could not be found")
+	}
+
+	if !session.Staff.HasHigherPermissions(*staff) {
+		return nil, status.Errorf(codes.PermissionDenied, "You do not have permission to perform this action")
+	}
+
+	role := in.GetRole()
+	if role == 0 {
+		return nil, status.Errorf(codes.InvalidArgument, "The role parameter is required")
+	}
+
+	staff, err = database.Client.Staff.SetRole(staffId, role)
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "Unable to set user's role")
+	}
+	return &pf.StandardResponse{
+		Message: fmt.Sprintf("Successfully set %s's role", staff.Name),
 	}, nil
 }

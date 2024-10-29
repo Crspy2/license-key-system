@@ -3,12 +3,12 @@ import "server-only"
 
 import { cache } from "react"
 import { cookies } from "next/headers"
-import {SessionRevokeRequest, SingleSessionResponse} from "@/proto/auth_pb"
+import { SingleSessionResponse } from "@/proto/auth_pb"
+import { StandardResponse } from "@/proto/globals_pb"
 import type { Safe } from "@/server/safe"
 import { Empty } from "google-protobuf/google/protobuf/empty_pb"
 import { authClient, unary_callback } from "@/server/grpc"
 import { Metadata } from "@grpc/grpc-js"
-import {StandardResponse} from "@/proto/globals_pb";
 
 export const getCurrentSession = cache(async () => {
     const cookieStore = await cookies()

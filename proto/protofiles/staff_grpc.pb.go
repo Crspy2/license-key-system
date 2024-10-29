@@ -20,20 +20,22 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Staff_ApproveStaff_FullMethodName        = "/protofiles.Staff/ApproveStaff"
+	Staff_SetStaffAccess_FullMethodName      = "/protofiles.Staff/SetStaffAccess"
 	Staff_GetStaff_FullMethodName            = "/protofiles.Staff/GetStaff"
 	Staff_GetAllStaffStream_FullMethodName   = "/protofiles.Staff/GetAllStaffStream"
 	Staff_SetStaffPermissions_FullMethodName = "/protofiles.Staff/SetStaffPermissions"
+	Staff_SetStaffRole_FullMethodName        = "/protofiles.Staff/SetStaffRole"
 )
 
 // StaffClient is the client API for Staff service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type StaffClient interface {
-	ApproveStaff(ctx context.Context, in *StaffIdRequest, opts ...grpc.CallOption) (*ApprovalResponse, error)
+	SetStaffAccess(ctx context.Context, in *StaffAccessRequest, opts ...grpc.CallOption) (*ApprovalResponse, error)
 	GetStaff(ctx context.Context, in *StaffIdRequest, opts ...grpc.CallOption) (*StaffObject, error)
 	GetAllStaffStream(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StaffObject], error)
 	SetStaffPermissions(ctx context.Context, in *MultiPermissionRequest, opts ...grpc.CallOption) (*StandardResponse, error)
+	SetStaffRole(ctx context.Context, in *StaffRoleRequest, opts ...grpc.CallOption) (*StandardResponse, error)
 }
 
 type staffClient struct {
@@ -44,10 +46,10 @@ func NewStaffClient(cc grpc.ClientConnInterface) StaffClient {
 	return &staffClient{cc}
 }
 
-func (c *staffClient) ApproveStaff(ctx context.Context, in *StaffIdRequest, opts ...grpc.CallOption) (*ApprovalResponse, error) {
+func (c *staffClient) SetStaffAccess(ctx context.Context, in *StaffAccessRequest, opts ...grpc.CallOption) (*ApprovalResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ApprovalResponse)
-	err := c.cc.Invoke(ctx, Staff_ApproveStaff_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, Staff_SetStaffAccess_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -93,14 +95,25 @@ func (c *staffClient) SetStaffPermissions(ctx context.Context, in *MultiPermissi
 	return out, nil
 }
 
+func (c *staffClient) SetStaffRole(ctx context.Context, in *StaffRoleRequest, opts ...grpc.CallOption) (*StandardResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StandardResponse)
+	err := c.cc.Invoke(ctx, Staff_SetStaffRole_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StaffServer is the server API for Staff service.
 // All implementations must embed UnimplementedStaffServer
 // for forward compatibility.
 type StaffServer interface {
-	ApproveStaff(context.Context, *StaffIdRequest) (*ApprovalResponse, error)
+	SetStaffAccess(context.Context, *StaffAccessRequest) (*ApprovalResponse, error)
 	GetStaff(context.Context, *StaffIdRequest) (*StaffObject, error)
 	GetAllStaffStream(*emptypb.Empty, grpc.ServerStreamingServer[StaffObject]) error
 	SetStaffPermissions(context.Context, *MultiPermissionRequest) (*StandardResponse, error)
+	SetStaffRole(context.Context, *StaffRoleRequest) (*StandardResponse, error)
 	mustEmbedUnimplementedStaffServer()
 }
 
@@ -111,8 +124,8 @@ type StaffServer interface {
 // pointer dereference when methods are called.
 type UnimplementedStaffServer struct{}
 
-func (UnimplementedStaffServer) ApproveStaff(context.Context, *StaffIdRequest) (*ApprovalResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ApproveStaff not implemented")
+func (UnimplementedStaffServer) SetStaffAccess(context.Context, *StaffAccessRequest) (*ApprovalResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetStaffAccess not implemented")
 }
 func (UnimplementedStaffServer) GetStaff(context.Context, *StaffIdRequest) (*StaffObject, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStaff not implemented")
@@ -122,6 +135,9 @@ func (UnimplementedStaffServer) GetAllStaffStream(*emptypb.Empty, grpc.ServerStr
 }
 func (UnimplementedStaffServer) SetStaffPermissions(context.Context, *MultiPermissionRequest) (*StandardResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetStaffPermissions not implemented")
+}
+func (UnimplementedStaffServer) SetStaffRole(context.Context, *StaffRoleRequest) (*StandardResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetStaffRole not implemented")
 }
 func (UnimplementedStaffServer) mustEmbedUnimplementedStaffServer() {}
 func (UnimplementedStaffServer) testEmbeddedByValue()               {}
@@ -144,20 +160,20 @@ func RegisterStaffServer(s grpc.ServiceRegistrar, srv StaffServer) {
 	s.RegisterService(&Staff_ServiceDesc, srv)
 }
 
-func _Staff_ApproveStaff_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StaffIdRequest)
+func _Staff_SetStaffAccess_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StaffAccessRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(StaffServer).ApproveStaff(ctx, in)
+		return srv.(StaffServer).SetStaffAccess(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Staff_ApproveStaff_FullMethodName,
+		FullMethod: Staff_SetStaffAccess_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StaffServer).ApproveStaff(ctx, req.(*StaffIdRequest))
+		return srv.(StaffServer).SetStaffAccess(ctx, req.(*StaffAccessRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -209,6 +225,24 @@ func _Staff_SetStaffPermissions_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Staff_SetStaffRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StaffRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StaffServer).SetStaffRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Staff_SetStaffRole_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StaffServer).SetStaffRole(ctx, req.(*StaffRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Staff_ServiceDesc is the grpc.ServiceDesc for Staff service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -217,8 +251,8 @@ var Staff_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*StaffServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "ApproveStaff",
-			Handler:    _Staff_ApproveStaff_Handler,
+			MethodName: "SetStaffAccess",
+			Handler:    _Staff_SetStaffAccess_Handler,
 		},
 		{
 			MethodName: "GetStaff",
@@ -227,6 +261,10 @@ var Staff_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetStaffPermissions",
 			Handler:    _Staff_SetStaffPermissions_Handler,
+		},
+		{
+			MethodName: "SetStaffRole",
+			Handler:    _Staff_SetStaffRole_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
