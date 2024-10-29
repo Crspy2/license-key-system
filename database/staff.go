@@ -2,7 +2,6 @@ package database
 
 import (
 	"errors"
-	"fmt"
 	"go.jetify.com/typeid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -98,12 +97,8 @@ func (sm *StaffModel) UpdatePermissions(permissions ...Permission) Permission {
 }
 
 func (sm *StaffModel) HasHigherPermissions(otherStaff StaffModel) bool {
-	if sm.Role > otherStaff.Role {
+	if sm.Perms > otherStaff.Perms {
 		return true
-	} else if sm.Role == otherStaff.Role {
-		if sm.Perms > otherStaff.Perms {
-			return true
-		}
 	}
 	return false
 }
@@ -219,15 +214,11 @@ func (s *Staff) SetStaffAccess(id string, approved bool) (*StaffModel, error) {
 		First(&staff).
 		Error
 
-	fmt.Println(staff)
-
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Println(approved)
 	staff.Approved = approved
-	fmt.Println(staff)
 
 	if approved {
 		staff.Perms = staff.UpdatePermissions(DefaultPermission, HWIDResetPermission, PassResetPermission)
