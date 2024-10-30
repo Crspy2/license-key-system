@@ -9,10 +9,10 @@ import (
 
 type LogModel struct {
 	ID          string    `gorm:"unique;primaryKey"`
-	Object      string    `gorm:"not null"`
-	Title       string    `gorm:"not null"`
-	Description string    `gorm:"not null"`
-	OccurredAt  time.Time `gorm:"not null"`
+	Object      string    `gorm:"<-:create;not null"`
+	Title       string    `gorm:"<-:create;not null"`
+	Description string    `gorm:"<-:create;not null"`
+	OccurredAt  time.Time `gorm:"<-:create;not null"`
 
 	StaffID string
 	Staff   StaffModel `gorm:"foreignKey:StaffID;references:ID"`
