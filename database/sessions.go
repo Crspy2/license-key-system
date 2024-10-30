@@ -55,7 +55,7 @@ func (s *Session) Get(id string) (*SessionModel, error) {
 	return &session, nil
 }
 
-func (s *Session) GetUserSessions(id string) ([]SessionModel, error) {
+func (s *Session) ListUserSessions(id string) ([]SessionModel, error) {
 	var sessions []SessionModel
 
 	err := s.db.
@@ -73,7 +73,17 @@ func (s *Session) GetUserSessions(id string) ([]SessionModel, error) {
 }
 
 func (s *Session) Create(session *SessionModel) error {
-	return s.db.Create(session).Error
+	err := s.db.Create(session).Error
+	if err != nil {
+		return err
+	}
+
+	err = s.db.Preload(clause.Associations).
+		Where(&SessionModel{ID: session.ID}).
+		First(session).
+		Error
+
+	return err
 }
 
 func (s *Session) Delete(session *SessionModel) error {
@@ -82,9 +92,4 @@ func (s *Session) Delete(session *SessionModel) error {
 
 func (s *Session) DeleteByIP(ip string) error {
 	return s.db.Where("ip_address = ?", ip).Delete(&SessionModel{}).Error
-}
-
-// DeleteExpiredSessions Optional method for removing expired sessions
-func (s *Session) DeleteExpiredSessions() error {
-	return s.db.Where("expires_at < ?", time.Now()).Delete(&SessionModel{}).Error
 }

@@ -31,20 +31,26 @@ export default function PermissionSelect({ permissions, control, name }: Permiss
             ...provided,
             backgroundColor: '#1a1b1e', // Dark mode background color
             color: '#2c2d31', // Text color
-            minHeight: '2.5rem', // Minimum height
             border: '1px solid #2c2d31',
             boxShadow: 'none',
-            flexWrap: 'wrap', // Allows wrapping when multiple items are selected
-            overflow: 'visible', // Ensures the height grows
-            '&:hover': { borderColor: '#3f51b5' },
+            flexWrap: "wrap", // Allows wrapping when multiple items are selected
+            overflowY: 'scroll', // Ensures the height grows
+            overflowX: 'hidden',
+            maxHeight: '2.5rem',
+            '&:hover': {
+                borderColor: '#3f51b5' ,
+                maxHeight: "100%",
+            },
+
         }),
         input: (provided) => ({
             ...provided,
-            margin: '0px'
+            margin: '0px',
         }),
         indicatorsContainer: (provided) => ({
             ...provided,
-            height: '38px'
+            height: '38px',
+
         }),
         menu: (provided) => ({ ...provided, backgroundColor: '#1a1b1e', position: 'absolute' }),
         option: (provided, state) => ({
@@ -66,7 +72,6 @@ export default function PermissionSelect({ permissions, control, name }: Permiss
         multiValueRemove: (provided) => ({
             ...provided,
             color: '#a0aec0',
-            display: "none",
             '&:hover': {
                 backgroundColor: 'rgb(248 113 113)',
                 color: 'white'
@@ -83,7 +88,7 @@ export default function PermissionSelect({ permissions, control, name }: Permiss
             onChange={handleChange}
             value={permissions.filter((perm) => value?.includes(perm.value))}
             name={name}
-            className="dark text-sm max-w-[35rem]"
+            className="dark text-sm max-w-[40rem]"
             styles={customStyles}
             placeholder="Select permissions..."
             menuPosition="fixed"

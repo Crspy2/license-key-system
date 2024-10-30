@@ -12,15 +12,9 @@ const StaffPage = async () => {
     if (!session.data?.staff?.permsList.includes("ProductStatus") || !session.data?.staff?.permsList.includes("ManageProducts")) return (
         <Error text="You do not have the correct permissions to view this page" />
     )
-    const staff = await listStaff();
 
     return (
-        <div className="m-8 gap-4 space-y-5">
-            <h1 className="text-4xl font-bold">Product Control</h1>
-            <div className="p-4 rounded-md">
-                <DataTable columns={staffColumns} data={staff.data!}/>
-            </div>
-        </div>
+        <Error text="Page is not finished being developed" />
     )
 }
 

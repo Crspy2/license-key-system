@@ -161,7 +161,7 @@ func (s *AuthServer) ListSessionStream(in *pf.MultiSessionRequest, stream pf.Aut
 		return status.Errorf(codes.InvalidArgument, "Invalid procedure call")
 	}
 
-	sessions, err := database.Client.Sessions.GetUserSessions(staffId)
+	sessions, err := database.Client.Sessions.ListUserSessions(staffId)
 	if err != nil {
 		return status.Errorf(codes.NotFound, err.Error())
 	}

@@ -66,7 +66,7 @@ func (s *UserServer) GetUser(ctx context.Context, in *pf.UserIdRequest) (*pf.Use
 		return nil, status.Errorf(codes.InvalidArgument, "User id is required")
 	}
 
-	user, err := database.Client.Users.GetById(userId)
+	user, err := database.Client.Users.Get(userId)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "User could not be found")
 	}
@@ -168,7 +168,7 @@ func (s *UserServer) RevokeBan(ctx context.Context, in *pf.UserIdRequest) (*pf.S
 		return nil, status.Errorf(codes.InvalidArgument, "User id is required")
 	}
 
-	user, err := database.Client.Users.UnBan(userId)
+	user, err := database.Client.Users.Unban(userId)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "User could not be found")
 	}

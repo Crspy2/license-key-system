@@ -16,6 +16,7 @@ type Database struct {
 	Users    *User
 	Products *Product
 	Licenses *License
+	Logs     *Log
 }
 
 var Client *Database
@@ -45,6 +46,7 @@ func newDatabase() *Database {
 		Users:    newUser(i),
 		Products: newProduct(i),
 		Licenses: newLicense(i),
+		Logs:     newLog(i),
 	}
 	return db
 }
@@ -56,6 +58,7 @@ func (db *Database) createTables() {
 		db.Users,
 		db.Products,
 		db.Licenses,
+		db.Logs,
 	)
 }
 

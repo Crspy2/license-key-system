@@ -44,7 +44,7 @@ func (s *StaffServer) SetStaffAccess(ctx context.Context, in *pf.StaffAccessRequ
 		return nil, status.Errorf(codes.PermissionDenied, "You do not have permission to perform this action")
 	}
 
-	staff, err = database.Client.Staff.SetStaffAccess(staffId, approved)
+	staff, err = database.Client.Staff.SetAccess(staffId, approved)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
@@ -83,7 +83,7 @@ func (s *StaffServer) GetStaff(_ context.Context, in *pf.StaffIdRequest) (*pf.St
 }
 
 func (s *StaffServer) ListStaffStream(_ *empty.Empty, stream pf.Staff_ListStaffStreamServer) error {
-	staffMembers, err := database.Client.Staff.GetAll()
+	staffMembers, err := database.Client.Staff.List()
 	if err != nil {
 		return status.Errorf(codes.NotFound, err.Error())
 	}

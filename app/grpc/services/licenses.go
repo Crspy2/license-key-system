@@ -92,7 +92,7 @@ func (s *LicenseServer) UserLicenseKeyStream(in *pf.UserIdRequest, stream pf.Lic
 		return status.Errorf(codes.InvalidArgument, "User id is required")
 	}
 
-	users, err := database.Client.Users.GetById(userId)
+	users, err := database.Client.Users.Get(userId)
 	if err != nil {
 		return status.Errorf(codes.NotFound, err.Error())
 	}

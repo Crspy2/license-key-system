@@ -34,7 +34,7 @@ func (s *User) schema() error {
 	return s.db.AutoMigrate(&UserModel{})
 }
 
-func (s *User) GetById(id uint64) (*UserModel, error) {
+func (s *User) Get(id uint64) (*UserModel, error) {
 	var user UserModel
 
 	err := s.db.
@@ -50,7 +50,7 @@ func (s *User) GetById(id uint64) (*UserModel, error) {
 	return &user, nil
 }
 
-func (s *User) GetAll() ([]UserModel, error) {
+func (s *User) List() ([]UserModel, error) {
 	var users []UserModel
 
 	err := s.db.
@@ -79,7 +79,7 @@ func (s *User) Create(name, passwordHash string) (*UserModel, error) {
 }
 
 func (s *User) ResetPassword(id uint64) (*UserModel, error) {
-	user, err := s.GetById(id)
+	user, err := s.Get(id)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func (s *User) ResetPassword(id uint64) (*UserModel, error) {
 }
 
 func (s *User) ResetHWID(id uint64) (*UserModel, error) {
-	user, err := s.GetById(id)
+	user, err := s.Get(id)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +123,7 @@ func (s *User) ResetHWID(id uint64) (*UserModel, error) {
 }
 
 func (s *User) Ban(id uint64) (*UserModel, error) {
-	user, err := s.GetById(id)
+	user, err := s.Get(id)
 	if err != nil {
 		return nil, err
 	}
@@ -136,8 +136,8 @@ func (s *User) Ban(id uint64) (*UserModel, error) {
 	return user, nil
 }
 
-func (s *User) UnBan(id uint64) (*UserModel, error) {
-	user, err := s.GetById(id)
+func (s *User) Unban(id uint64) (*UserModel, error) {
+	user, err := s.Get(id)
 	if err != nil {
 		return nil, err
 	}

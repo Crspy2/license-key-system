@@ -4,7 +4,7 @@ import * as React from "react"
 import Link from "next/link"
 import { SessionObject } from "@/proto/auth_pb"
 
-import { NavMain } from "@/components/nav-main"
+import { MainNav } from "@/components/main-nav"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
 import {
@@ -23,6 +23,8 @@ import { PiLifebuoyBold } from "react-icons/pi"
 import { FaBox, FaFileInvoice, FaKey, FaUsers, FaUsersGear } from "react-icons/fa6"
 import { IoTerminal } from "react-icons/io5"
 import { AiOutlineAudit } from "react-icons/ai"
+import {StaffNav} from "@/components/staff-nav";
+import {ConvertPermissionsToValues, GetUserRoleText, GetUserRoleValue} from "@/lib/utils";
 
 const data = {
   user: {
@@ -30,7 +32,7 @@ const data = {
     email: "m@example.com",
     avatar: "/avatars/shadcn.jpg",
   },
-  navMain: [
+  mainNav: [
     {
       title: "Panel",
       url: "/",
@@ -56,6 +58,8 @@ const data = {
       url: "/subscriptions",
       icon: FaFileInvoice,
     },
+  ],
+  staffNav:[
     {
       title: "Staff",
       url: "/staff",
@@ -67,10 +71,10 @@ const data = {
       icon: AiOutlineAudit,
     },
   ],
-  navSecondary: [
+  secondaryNav: [
     {
       title: "Support",
-      url: "#",
+      url: "https://github.com/crspy2",
       icon: PiLifebuoyBold,
     },
     {
@@ -104,8 +108,11 @@ export function AppSidebar({ session, ...props }: React.ComponentProps<typeof Si
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <MainNav items={data.mainNav} />
+        {session.staff.role >= 1 && session.staff.permsList.includes("ManageUsers") && (
+            <StaffNav items={data.staffNav} />
+        )}
+        <NavSecondary items={data.secondaryNav} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         <NavUser staff={session.staff!} />

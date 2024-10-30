@@ -29,7 +29,7 @@ func (s *ProductServer) GetProduct(ctx context.Context, in *pf.ProductIdRequest)
 		return nil, status.Errorf(codes.InvalidArgument, "Product Id is required")
 	}
 
-	product, err := database.Client.Products.GetById(productId)
+	product, err := database.Client.Products.Get(productId)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "Product could not be found")
 	}
@@ -58,7 +58,7 @@ func (s *ProductServer) ListProductStream(_ *empty.Empty, stream pf.Product_List
 		return status.Errorf(codes.PermissionDenied, "You do not have permission to view products")
 	}
 
-	products, err := database.Client.Products.GetAll()
+	products, err := database.Client.Products.List()
 	if err != nil {
 		return status.Errorf(codes.NotFound, err.Error())
 	}
@@ -201,7 +201,7 @@ func (s *ProductServer) SetProductStatus(ctx context.Context, in *pf.ProductStat
 		return nil, status.Errorf(codes.InvalidArgument, "A product status is required")
 	}
 
-	_, err := database.Client.Products.SetProductStatus(productId, productStatus)
+	_, err := database.Client.Products.SetStatus(productId, productStatus)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "Product could not be found")
 	}

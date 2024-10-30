@@ -25,7 +25,7 @@ type LicenseModel struct {
 }
 
 func (pm *LicenseModel) TableName() string {
-	return "products"
+	return "licenses"
 }
 
 func (pm *LicenseModel) BeforeCreate(tx *gorm.DB) error {

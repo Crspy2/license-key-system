@@ -1,0 +1,27 @@
+syntax = "proto3";
+option go_package = "crspy2/licenses/protofiles";
+package protofiles;
+
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "staff.proto";
+
+
+message LogObject {
+  string id = 1;
+  string object = 2;
+  string title = 3;
+  string description = 4;
+  google.protobuf.Timestamp occurred_at = 5;
+  StaffObject staff = 6;
+}
+
+service Logs {
+  rpc GetLog(LogIdRequest) returns (LogObject);
+  rpc ListLogsStream(google.protobuf.Empty) returns (stream LogObject);
+}
+
+message LogIdRequest {
+  string logId = 1;
+}

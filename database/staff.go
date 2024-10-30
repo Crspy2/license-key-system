@@ -57,6 +57,7 @@ type StaffModel struct {
 	UpdatedAt    time.Time
 
 	Sessions []SessionModel `gorm:"foreignKey:StaffID"`
+	Logs     []LogModel     `gorm:"foreignKey:StaffID"`
 }
 
 func (sm *StaffModel) TableName() string {
@@ -135,7 +136,7 @@ func (s *Staff) GetByName(name string) (*StaffModel, error) {
 	return &user, nil
 }
 
-func (s *Staff) GetAll() ([]StaffModel, error) {
+func (s *Staff) List() ([]StaffModel, error) {
 	var staff []StaffModel
 
 	err := s.db.Find(&staff).Error
@@ -181,7 +182,7 @@ func (s *Staff) Authenticate(name, password string) (*StaffModel, error) {
 	return &staff, nil
 }
 
-func (s *Staff) SetStaffAccess(id string, approved bool) (*StaffModel, error) {
+func (s *Staff) SetAccess(id string, approved bool) (*StaffModel, error) {
 	staff, err := s.GetById(id)
 	if err != nil {
 		return nil, err

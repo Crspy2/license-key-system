@@ -51,7 +51,7 @@ func (s *Product) schema() error {
 	return s.db.AutoMigrate(&ProductModel{})
 }
 
-func (s *Product) GetById(id string) (*ProductModel, error) {
+func (s *Product) Get(id string) (*ProductModel, error) {
 	var prd ProductModel
 	err := s.db.
 		Preload(clause.Associations).
@@ -66,7 +66,7 @@ func (s *Product) GetById(id string) (*ProductModel, error) {
 	return &prd, nil
 }
 
-func (s *Product) GetAll() ([]ProductModel, error) {
+func (s *Product) List() ([]ProductModel, error) {
 	var prd []ProductModel
 	err := s.db.Find(&prd).Error
 	if err != nil {
@@ -83,11 +83,11 @@ func (s *Product) Create(name string) (*ProductModel, error) {
 		return nil, err
 	}
 
-	return &product, nil // Return the created product
+	return &product, nil
 }
 
 func (s *Product) Delete(id string) (*ProductModel, error) {
-	product, err := s.GetById(id) // Fetch product before deleting
+	product, err := s.Get(id)
 	if err != nil {
 		return nil, err
 	}
@@ -100,8 +100,8 @@ func (s *Product) Delete(id string) (*ProductModel, error) {
 	return product, nil
 }
 
-func (s *Product) SetProductStatus(id string, status Status) (*ProductModel, error) {
-	product, err := s.GetById(id)
+func (s *Product) SetStatus(id string, status Status) (*ProductModel, error) {
+	product, err := s.Get(id)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +135,7 @@ func (s *Product) SetProductStatus(id string, status Status) (*ProductModel, err
 func (s *Product) CompensateKeys(id string, duration time.Duration) (*ProductModel, error) {
 	tx := s.db.Begin()
 
-	product, err := s.GetById(id)
+	product, err := s.Get(id)
 	if err != nil {
 		tx.Rollback()
 		return nil, err
