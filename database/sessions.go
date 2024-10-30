@@ -7,24 +7,24 @@ import (
 	"time"
 )
 
-type SessionModal struct {
-	Id        string    `gorm:"unique;primaryKey" json:"id"`
-	CsrfToken string    `gorm:"unique" json:"csrf_token"`
-	StaffId   string    `json:"staff_id"`
-	IpAddress string    `gorm:"unique" json:"ip_address"`
-	UserAgent string    `json:"user_agent"`
-	ExpiresAt time.Time `json:"expires_at"`
+type SessionModel struct {
+	ID        string `gorm:"unique;primaryKey"`
+	CsrfToken string `gorm:"unique"`
+	IpAddress string `gorm:"unique"`
+	UserAgent string
+	ExpiresAt time.Time
 
-	Staff StaffModel `gorm:"foreignKey:StaffId;references:Id" json:"staff"`
+	StaffID string
+	Staff   StaffModel `gorm:"foreignKey:StaffID;references:ID"`
 }
 
-func (sm *SessionModal) BeforeCreate(tx *gorm.DB) error {
-	sm.Id = typeid.Must(typeid.WithPrefix("sess")).String()
+func (sm *SessionModel) BeforeCreate(tx *gorm.DB) error {
+	sm.ID = typeid.Must(typeid.WithPrefix("sess")).String()
 	sm.CsrfToken = typeid.Must(typeid.WithPrefix("csrf")).String()
 	return nil
 }
 
-func (sm *SessionModal) TableName() string {
+func (sm *SessionModel) TableName() string {
 	return "sessions"
 }
 
@@ -37,22 +37,15 @@ func newSessions(db *gorm.DB) *Session {
 }
 
 func (s *Session) schema() error {
-	err := s.db.AutoMigrate(SessionModal{})
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return s.db.AutoMigrate(&SessionModel{}) // Direct return for readability
 }
 
-func (s *Session) Get(id string) (*SessionModal, error) {
-	var session SessionModal
+func (s *Session) Get(id string) (*SessionModel, error) {
+	var session SessionModel
 
 	err := s.db.
 		Preload(clause.Associations).
-		Where(&SessionModal{
-			Id: id,
-		}).
+		Where(&SessionModel{ID: id}).
 		First(&session).
 		Error
 	if err != nil {
@@ -62,12 +55,12 @@ func (s *Session) Get(id string) (*SessionModal, error) {
 	return &session, nil
 }
 
-func (s *Session) GetUserSessions(id string) ([]SessionModal, error) {
-	var sessions []SessionModal
+func (s *Session) GetUserSessions(id string) ([]SessionModel, error) {
+	var sessions []SessionModel
 
 	err := s.db.
 		Preload(clause.Associations).
-		Where(&SessionModal{StaffId: id}).
+		Where(&SessionModel{StaffID: id}).
 		Where("expires_at > ?", time.Now()).
 		Find(&sessions).
 		Error
@@ -79,49 +72,19 @@ func (s *Session) GetUserSessions(id string) ([]SessionModal, error) {
 	return sessions, nil
 }
 
-func (s *Session) Create(session *SessionModal) error {
-	var err error
-	err = s.db.Create(session).Error
-	if err != nil {
-		return err
-	}
-
-	err = s.db.Preload(clause.Associations).Where(&SessionModal{
-		Id: session.Id,
-	}).First(session).Error
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (s *Session) Create(session *SessionModel) error {
+	return s.db.Create(session).Error
 }
 
-func (s *Session) Delete(session *SessionModal) error {
-	err := s.db.
-		Delete(session).
-		Error
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (s *Session) Delete(session *SessionModel) error {
+	return s.db.Delete(session).Error
 }
 
 func (s *Session) DeleteByIP(ip string) error {
-	sessionMatch := &SessionModal{
-		IpAddress: ip,
-	}
+	return s.db.Where("ip_address = ?", ip).Delete(&SessionModel{}).Error
+}
 
-	err := s.db.
-		Preload(clause.Associations).
-		Where(sessionMatch).
-		Delete(sessionMatch).
-		Error
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+// DeleteExpiredSessions Optional method for removing expired sessions
+func (s *Session) DeleteExpiredSessions() error {
+	return s.db.Where("expires_at < ?", time.Now()).Delete(&SessionModel{}).Error
 }

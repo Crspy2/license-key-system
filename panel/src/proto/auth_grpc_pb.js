@@ -152,8 +152,8 @@ var AuthService = exports.AuthService = {
     responseSerialize: serialize_protofiles_SingleSessionResponse,
     responseDeserialize: deserialize_protofiles_SingleSessionResponse,
   },
-  getUserSessionsStream: {
-    path: '/protofiles.Auth/GetUserSessionsStream',
+  listSessionStream: {
+    path: '/protofiles.Auth/ListSessionStream',
     requestStream: false,
     responseStream: true,
     requestType: auth_pb.MultiSessionRequest,

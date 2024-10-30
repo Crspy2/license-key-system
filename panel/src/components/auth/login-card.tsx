@@ -48,7 +48,7 @@ export const LoginCard = () => {
     return (
         <Card className="rounded-2xl bg-neutral-900 bg-[radial-gradient(circle_at_50%_0%,theme(colors.white/10%),transparent)] mx-4 py-10 ring-1 ring-inset ring-white/5 sm:w-96 sm:mx-8">
             <CardHeader className="text-center">
-                <Image src="/altera_dark.png" alt="Company logo" className="mx-auto size-24 rounded-lg" width={500} height={500}  />
+                <Image src="/crspy_pfp.webp" alt="Company logo" className="mx-auto size-24 rounded-lg" width={500} height={500}  />
                 <CardTitle className="mt-4 text-2xl font-semibold tracking-tight text-white">Sign In</CardTitle>
             </CardHeader>
             <CardContent>

@@ -1,0 +1,31 @@
+syntax = "proto3";
+option go_package = "crspy2/licenses/protofiles";
+package protofiles;
+
+import "globals.proto";
+
+message UserObject {
+  uint64 id = 1;
+  string name = 2;
+  bool banned = 3;
+}
+
+service User {
+  rpc CreateUser(UserCreateRequest) returns (UserObject);
+
+  rpc GetUser(UserIdRequest) returns (UserObject);
+
+  rpc ResetHardwareId(UserIdRequest) returns (StandardResponse);
+  rpc ResetPassword(UserIdRequest) returns (StandardResponse);
+  rpc BanUser(UserIdRequest) returns (StandardResponse);
+  rpc RevokeBan(UserIdRequest) returns (StandardResponse);
+}
+
+message UserCreateRequest {
+  string name = 1;
+  string password = 2;
+}
+
+message UserIdRequest {
+  uint64 userId = 1;
+}

@@ -15,28 +15,23 @@ message StaffObject {
   bool approved = 6;
 }
 
-message StaffIdRequest {
-  string staffId = 1;
-}
-
 service Staff {
   rpc SetStaffAccess(StaffAccessRequest) returns (ApprovalResponse);
 
   rpc GetStaff(StaffIdRequest) returns (StaffObject);
-  rpc GetAllStaffStream(google.protobuf.Empty) returns (stream StaffObject);
+  rpc ListStaffStream(google.protobuf.Empty) returns (stream StaffObject);
 
   rpc SetStaffPermissions(MultiPermissionRequest) returns (StandardResponse);
   rpc SetStaffRole(StaffRoleRequest) returns (StandardResponse);
 }
 
+message StaffIdRequest {
+  string staffId = 1;
+}
+
 message StaffAccessRequest {
   string staffId = 1;
   bool approved = 2;
-}
-
-message ApprovalResponse {
-  string message = 1;
-  StaffObject staff = 2;
 }
 
 message MultiPermissionRequest {
@@ -52,4 +47,9 @@ message SinglePermissionRequest {
 message StaffRoleRequest {
   string staffId = 1;
   int32 role = 2;
+}
+
+message ApprovalResponse {
+  string message = 1;
+  StaffObject staff = 2;
 }

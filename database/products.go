@@ -1,22 +1,32 @@
 package database
 
 import (
+	"database/sql"
+	"errors"
 	"go.jetify.com/typeid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"time"
 )
 
-type ProductModel struct {
-	Id              string    `gorm:"unique;primaryKey" json:"id"`
-	Name            string    `gorm:"unique" json:"name"`
-	Status          string    `gorm:"not null" json:"status"`
-	StatusChangedAt time.Time `json:"status_changed_at"`
-	CreatedAt       time.Time `json:"created_at"`
-	UpdatedAt       time.Time `json:"updated_at"`
+type Status = string
 
-	Files []FileModel `gorm:"foreignKey:ProductId" json:"files"`
-	// TODO: Add license keys as foreign key array for product (for compensation)
+var (
+	Development Status = "Development"
+	Testing     Status = "Testing"
+	Maintenance Status = "Under Maintenance"
+	Operational Status = "Operational"
+)
+
+type ProductModel struct {
+	ID        string `gorm:"unique;primaryKey"`
+	Name      string `gorm:"unique"`
+	Status    Status `gorm:"default:Development"`
+	PausedAt  sql.NullTime
+	CreatedAt time.Time
+	UpdatedAt time.Time
+
+	Licenses []LicenseModel `gorm:"foreignKey:ProductID;references:ID"`
 }
 
 func (pm *ProductModel) TableName() string {
@@ -24,13 +34,8 @@ func (pm *ProductModel) TableName() string {
 }
 
 func (pm *ProductModel) BeforeCreate(tx *gorm.DB) error {
-	pm.Id = typeid.Must(typeid.WithPrefix("prod")).String()
+	pm.ID = typeid.Must(typeid.WithPrefix("prod")).String()
 	pm.CreatedAt = time.Now()
-	return nil
-}
-
-func (pm *ProductModel) AfterUpdate(tx *gorm.DB) error {
-	pm.UpdatedAt = time.Now()
 	return nil
 }
 
@@ -43,20 +48,14 @@ func newProduct(db *gorm.DB) *Product {
 }
 
 func (s *Product) schema() error {
-	err := s.db.AutoMigrate(ProductModel{})
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return s.db.AutoMigrate(&ProductModel{})
 }
 
 func (s *Product) GetById(id string) (*ProductModel, error) {
 	var prd ProductModel
-
 	err := s.db.
 		Preload(clause.Associations).
-		Where(&ProductModel{Id: id}).
+		Where(&ProductModel{ID: id}).
 		First(&prd).
 		Error
 
@@ -69,11 +68,7 @@ func (s *Product) GetById(id string) (*ProductModel, error) {
 
 func (s *Product) GetAll() ([]ProductModel, error) {
 	var prd []ProductModel
-
-	err := s.db.
-		Find(&prd).
-		Error
-
+	err := s.db.Find(&prd).Error
 	if err != nil {
 		return nil, err
 	}
@@ -81,17 +76,82 @@ func (s *Product) GetAll() ([]ProductModel, error) {
 	return prd, nil
 }
 
-func (s *Product) Create(name, passwordHash string) (*ProductModel, error) {
-	user := StaffModel{
-		Name:         name,
-		PasswordHash: passwordHash,
-	}
-
-	var err error
-	err = s.db.Create(&user).Error
+func (s *Product) Create(name string) (*ProductModel, error) {
+	product := ProductModel{Name: name}
+	err := s.db.Create(&product).Error
 	if err != nil {
 		return nil, err
 	}
 
-	return nil, nil
+	return &product, nil // Return the created product
+}
+
+func (s *Product) Delete(id string) (*ProductModel, error) {
+	product, err := s.GetById(id) // Fetch product before deleting
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.db.Delete(&ProductModel{}, id).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return product, nil
+}
+
+func (s *Product) SetProductStatus(id string, status Status) (*ProductModel, error) {
+	product, err := s.GetById(id)
+	if err != nil {
+		return nil, err
+	}
+
+	pastStatus := product.Status
+	product.Status = status
+
+	if (status == Testing || status == Maintenance) && !product.PausedAt.Valid {
+		product.PausedAt = sql.NullTime{Time: time.Now(), Valid: true}
+	}
+
+	if err := s.db.Save(product).Error; err != nil {
+		return nil, err
+	}
+
+	if status == Operational && (pastStatus == Maintenance || pastStatus == Testing) && product.PausedAt.Valid {
+		_, err = s.CompensateKeys(id, time.Since(product.PausedAt.Time))
+		if err != nil {
+			return nil, err
+		}
+		product.PausedAt = sql.NullTime{Valid: false}
+
+		if err := s.db.Save(product).Error; err != nil {
+			return nil, errors.New("product status updated, but failed to compensate for lost time")
+		}
+	}
+
+	return product, nil
+}
+
+func (s *Product) CompensateKeys(id string, duration time.Duration) (*ProductModel, error) {
+	tx := s.db.Begin()
+
+	product, err := s.GetById(id)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	for _, license := range product.Licenses {
+		license.Expiration = sql.NullTime{Time: license.Expiration.Time.Add(duration), Valid: true}
+		if err := tx.Save(&license).Error; err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return nil, err
+	}
+
+	return product, nil
 }

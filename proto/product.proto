@@ -1,3 +1,45 @@
 syntax = "proto3";
 option go_package = "crspy2/licenses/protofiles";
 package protofiles;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/empty.proto";
+import "globals.proto";
+
+
+message ProductObject {
+  string id = 1;
+  string name = 2;
+  string status = 3;
+  google.protobuf.Timestamp PausedAt = 4;
+}
+
+service Product {
+  rpc GetProduct(ProductIdRequest) returns (ProductObject);
+  rpc ListProductStream(google.protobuf.Empty) returns (stream ProductObject);
+
+  rpc CreateProduct(ProductCreateRequest) returns (ProductObject);
+  rpc DeleteProduct(ProductIdRequest) returns (StandardResponse);
+  rpc CompensateProduct(ProductCompRequest) returns (StandardResponse);
+
+  rpc SetProductStatus(ProductStatusRequest) returns (StandardResponse);
+}
+
+message ProductCreateRequest {
+  string name = 1;
+}
+
+message ProductIdRequest {
+  string productId = 1;
+}
+
+message ProductCompRequest {
+  string productId = 1;
+  google.protobuf.Duration compTime = 2;
+}
+
+message ProductStatusRequest {
+  string productId = 1;
+  string status = 2;
+}

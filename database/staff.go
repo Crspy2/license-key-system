@@ -18,23 +18,21 @@ const (
 	CompensationPermission
 	ChangeStatusPermission
 	ManageProductsPermission
-	DeleteUserPermission
+	ManageUsersPermission
 	KeyGenPermission
 	ManageStaffPermission
 )
 
 var permissionNames = map[Permission]string{
-	DefaultPermission:      "Default",
-	HWIDResetPermission:    "HWIDReset",
-	PassResetPermission:    "PasswordReset",
-	CompensationPermission: "Compensate",
-	ChangeStatusPermission: "ProductStatus",
-
+	DefaultPermission:        "Default",
+	HWIDResetPermission:      "HWIDReset",
+	PassResetPermission:      "PasswordReset",
+	CompensationPermission:   "Compensate",
+	ChangeStatusPermission:   "ProductStatus",
 	ManageProductsPermission: "ManageProducts",
-
-	DeleteUserPermission:  "DeleteUsers",
-	KeyGenPermission:      "GenerateKeys",
-	ManageStaffPermission: "ManageStaff",
+	ManageUsersPermission:    "ManageUsers",
+	KeyGenPermission:         "GenerateKeys",
+	ManageStaffPermission:    "ManageStaff",
 }
 
 type Role = int32
@@ -48,29 +46,26 @@ const (
 )
 
 type StaffModel struct {
-	Id           string         `gorm:"unique;primaryKey" json:"id"`
-	Name         string         `gorm:"unique" json:"name"`
-	Image        string         `json:"image"`
-	Role         Role           `gorm:"default:0" json:"role"`
-	PasswordHash string         `json:"password_hash"`
-	Perms        Permission     `gorm:"type:bigint" json:"perms"`
-	Approved     bool           `gorm:"default:false" json:"approved"`
-	CreatedAt    time.Time      `json:"created_at"`
-	UpdatedAt    time.Time      `json:"updated_at"`
-	Sessions     []SessionModal `gorm:"foreignKey:StaffId" json:"sessions"`
+	ID           string `gorm:"unique;primaryKey"`
+	Name         string `gorm:"unique"`
+	Image        string
+	Role         Role `gorm:"default:0"`
+	PasswordHash string
+	Perms        Permission `gorm:"type:bigint"`
+	Approved     bool       `gorm:"default:false"`
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+
+	Sessions []SessionModel `gorm:"foreignKey:StaffID"`
 }
 
 func (sm *StaffModel) TableName() string {
 	return "staff"
 }
-func (sm *StaffModel) BeforeCreate(tx *gorm.DB) error {
-	sm.Id = typeid.Must(typeid.WithPrefix("staf")).String()
-	sm.CreatedAt = time.Now()
-	return nil
-}
 
-func (sm *StaffModel) AfterUpdate(tx *gorm.DB) error {
-	sm.UpdatedAt = time.Now()
+func (sm *StaffModel) BeforeCreate(tx *gorm.DB) error {
+	sm.ID = typeid.Must(typeid.WithPrefix("staf")).String()
+	sm.CreatedAt = time.Now()
 	return nil
 }
 
@@ -81,26 +76,15 @@ func (sm *StaffModel) HasPermission(permission Permission) bool {
 func (sm *StaffModel) GetPermissionNames() []string {
 	var perms []string
 	for perm, name := range permissionNames {
-		if sm.HasPermission(perm) { // Use the HasPermission method
+		if sm.HasPermission(perm) {
 			perms = append(perms, name)
 		}
 	}
 	return perms
 }
 
-func (sm *StaffModel) UpdatePermissions(permissions ...Permission) Permission {
-	var newPerms Permission
-	for _, permission := range permissions {
-		newPerms |= permission
-	}
-	return newPerms
-}
-
 func (sm *StaffModel) HasHigherPermissions(otherStaff StaffModel) bool {
-	if sm.Perms > otherStaff.Perms {
-		return true
-	}
-	return false
+	return sm.Perms > otherStaff.Perms
 }
 
 func (sm *StaffModel) HasHigherRole(otherStaff StaffModel) bool {
@@ -116,12 +100,7 @@ func newStaff(db *gorm.DB) *Staff {
 }
 
 func (s *Staff) schema() error {
-	err := s.db.AutoMigrate(StaffModel{})
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return s.db.AutoMigrate(&StaffModel{})
 }
 
 func (s *Staff) GetById(id string) (*StaffModel, error) {
@@ -129,7 +108,7 @@ func (s *Staff) GetById(id string) (*StaffModel, error) {
 
 	err := s.db.
 		Preload(clause.Associations).
-		Where(&StaffModel{Id: id}).
+		Where(&StaffModel{ID: id}).
 		First(&user).
 		Error
 
@@ -159,10 +138,7 @@ func (s *Staff) GetByName(name string) (*StaffModel, error) {
 func (s *Staff) GetAll() ([]StaffModel, error) {
 	var staff []StaffModel
 
-	err := s.db.
-		Find(&staff).
-		Error
-
+	err := s.db.Find(&staff).Error
 	if err != nil {
 		return nil, err
 	}
@@ -176,8 +152,7 @@ func (s *Staff) Create(name, passwordHash string) (*StaffModel, error) {
 		PasswordHash: passwordHash,
 	}
 
-	var err error
-	err = s.db.Create(&user).Error
+	err := s.db.Create(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -207,63 +182,47 @@ func (s *Staff) Authenticate(name, password string) (*StaffModel, error) {
 }
 
 func (s *Staff) SetStaffAccess(id string, approved bool) (*StaffModel, error) {
-	var staff StaffModel
-
-	err := s.db.
-		Where(&StaffModel{Id: id}).
-		First(&staff).
-		Error
-
+	staff, err := s.GetById(id)
 	if err != nil {
 		return nil, err
 	}
 
 	staff.Approved = approved
-
-	if approved {
-		staff.Perms = staff.UpdatePermissions(DefaultPermission, HWIDResetPermission, PassResetPermission)
-	} else {
-		staff.Perms = staff.UpdatePermissions(0)
+	if approved && !staff.HasPermission(DefaultPermission) {
+		staff.Perms |= DefaultPermission | HWIDResetPermission | PassResetPermission
+	} else if !approved {
+		staff.Perms = 0
 	}
 
-	s.db.Where(&StaffModel{Id: id}).Save(&staff)
-	//s.db.Save(&staff)
+	if err := s.db.Save(staff).Error; err != nil {
+		return nil, err
+	}
 
-	return &staff, nil
+	return staff, nil
 }
 
 func (s *Staff) AddPermission(id string, permission Permission) error {
-	var staff StaffModel
-
-	err := s.db.Where(&StaffModel{Id: id}).First(&staff).Error
+	staff, err := s.GetById(id)
 	if err != nil {
 		return err
 	}
-	staff.Perms |= permission // Set the permission bit
+	staff.Perms |= permission
 
-	s.db.Save(&staff)
-
-	return nil
+	return s.db.Save(staff).Error
 }
 
 func (s *Staff) RemovePermission(id string, permission Permission) error {
-	var staff StaffModel
-
-	err := s.db.Where(&StaffModel{Id: id}).First(&staff).Error
+	staff, err := s.GetById(id)
 	if err != nil {
 		return err
 	}
-	staff.Perms &= ^permission // Clear the permission bit
+	staff.Perms &= ^permission
 
-	s.db.Save(&staff)
-
-	return nil
+	return s.db.Save(staff).Error
 }
 
 func (s *Staff) SetPermissions(id string, permissions []Permission) (*StaffModel, error) {
-	var staff StaffModel
-
-	err := s.db.Where(&StaffModel{Id: id}).First(&staff).Error
+	staff, err := s.GetById(id)
 	if err != nil {
 		return nil, err
 	}
@@ -274,21 +233,23 @@ func (s *Staff) SetPermissions(id string, permissions []Permission) (*StaffModel
 	}
 	staff.Perms = newPerms
 
-	s.db.Save(&staff)
+	if err := s.db.Save(staff).Error; err != nil {
+		return nil, err
+	}
 
-	return &staff, nil
+	return staff, nil
 }
 
 func (s *Staff) SetRole(id string, role Role) (*StaffModel, error) {
-	var staff StaffModel
-
-	err := s.db.Where(&StaffModel{Id: id}).First(&staff).Error
+	staff, err := s.GetById(id)
 	if err != nil {
 		return nil, err
 	}
 
 	staff.Role = role
-	s.db.Save(&staff)
+	if err := s.db.Save(staff).Error; err != nil {
+		return nil, err
+	}
 
-	return &staff, nil
+	return staff, nil
 }

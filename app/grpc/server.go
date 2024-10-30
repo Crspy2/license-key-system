@@ -25,7 +25,6 @@ func StartGRPCServer(l *zap.SugaredLogger) {
 		l.Fatalf("Failed to create listener: %v", err.Error())
 	}
 
-	l.Info("Loading SSL encryption data")
 	cert, err := base64.StdEncoding.DecodeString(config.Conf.SSL.Cert)
 	if err != nil {
 		l.Fatalf("Failed to decode SSL encryption certificate: %v", err)
@@ -51,7 +50,6 @@ func StartGRPCServer(l *zap.SugaredLogger) {
 	if err != nil {
 		l.Fatalln(err.Error())
 	}
-	l.Info("SSL encryption key loaded")
 
 	recoverOpts := []recovery.Option{
 		recovery.WithRecoveryHandler(func(p any) (err error) {
@@ -82,9 +80,13 @@ func StartGRPCServer(l *zap.SugaredLogger) {
 	s := grpc.NewServer(grpcOpts...)
 	pf.RegisterAuthServer(s, &services.AuthServer{})
 	pf.RegisterStaffServer(s, &services.StaffServer{})
+	pf.RegisterUserServer(s, &services.UserServer{})
+	pf.RegisterProductServer(s, &services.ProductServer{})
+	pf.RegisterLicenseServer(s, &services.LicenseServer{})
 
-	// TODO: Remove this line in production
-	reflection.Register(s)
+	if os.Getenv("RAILWAY_ENVIRONMENT_NAME") != "production" {
+		reflection.Register(s)
+	}
 
 	l.Infof("GRPC server listening on tcp port %s", config.Conf.GrpcPort)
 	if err = s.Serve(listener); err != nil {

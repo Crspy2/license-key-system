@@ -20,12 +20,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Auth_Login_FullMethodName                 = "/protofiles.Auth/Login"
-	Auth_Register_FullMethodName              = "/protofiles.Auth/Register"
-	Auth_Logout_FullMethodName                = "/protofiles.Auth/Logout"
-	Auth_GetSessionInfo_FullMethodName        = "/protofiles.Auth/GetSessionInfo"
-	Auth_GetUserSessionsStream_FullMethodName = "/protofiles.Auth/GetUserSessionsStream"
-	Auth_RevokeSession_FullMethodName         = "/protofiles.Auth/RevokeSession"
+	Auth_Login_FullMethodName             = "/protofiles.Auth/Login"
+	Auth_Register_FullMethodName          = "/protofiles.Auth/Register"
+	Auth_Logout_FullMethodName            = "/protofiles.Auth/Logout"
+	Auth_GetSessionInfo_FullMethodName    = "/protofiles.Auth/GetSessionInfo"
+	Auth_ListSessionStream_FullMethodName = "/protofiles.Auth/ListSessionStream"
+	Auth_RevokeSession_FullMethodName     = "/protofiles.Auth/RevokeSession"
 )
 
 // AuthClient is the client API for Auth service.
@@ -36,7 +36,7 @@ type AuthClient interface {
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*StandardResponse, error)
 	Logout(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*StandardResponse, error)
 	GetSessionInfo(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*SingleSessionResponse, error)
-	GetUserSessionsStream(ctx context.Context, in *MultiSessionRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[SessionObject], error)
+	ListSessionStream(ctx context.Context, in *MultiSessionRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[SessionObject], error)
 	RevokeSession(ctx context.Context, in *SessionRevokeRequest, opts ...grpc.CallOption) (*StandardResponse, error)
 }
 
@@ -88,9 +88,9 @@ func (c *authClient) GetSessionInfo(ctx context.Context, in *emptypb.Empty, opts
 	return out, nil
 }
 
-func (c *authClient) GetUserSessionsStream(ctx context.Context, in *MultiSessionRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[SessionObject], error) {
+func (c *authClient) ListSessionStream(ctx context.Context, in *MultiSessionRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[SessionObject], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &Auth_ServiceDesc.Streams[0], Auth_GetUserSessionsStream_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &Auth_ServiceDesc.Streams[0], Auth_ListSessionStream_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +105,7 @@ func (c *authClient) GetUserSessionsStream(ctx context.Context, in *MultiSession
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Auth_GetUserSessionsStreamClient = grpc.ServerStreamingClient[SessionObject]
+type Auth_ListSessionStreamClient = grpc.ServerStreamingClient[SessionObject]
 
 func (c *authClient) RevokeSession(ctx context.Context, in *SessionRevokeRequest, opts ...grpc.CallOption) (*StandardResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
@@ -125,7 +125,7 @@ type AuthServer interface {
 	Register(context.Context, *RegisterRequest) (*StandardResponse, error)
 	Logout(context.Context, *emptypb.Empty) (*StandardResponse, error)
 	GetSessionInfo(context.Context, *emptypb.Empty) (*SingleSessionResponse, error)
-	GetUserSessionsStream(*MultiSessionRequest, grpc.ServerStreamingServer[SessionObject]) error
+	ListSessionStream(*MultiSessionRequest, grpc.ServerStreamingServer[SessionObject]) error
 	RevokeSession(context.Context, *SessionRevokeRequest) (*StandardResponse, error)
 	mustEmbedUnimplementedAuthServer()
 }
@@ -149,8 +149,8 @@ func (UnimplementedAuthServer) Logout(context.Context, *emptypb.Empty) (*Standar
 func (UnimplementedAuthServer) GetSessionInfo(context.Context, *emptypb.Empty) (*SingleSessionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSessionInfo not implemented")
 }
-func (UnimplementedAuthServer) GetUserSessionsStream(*MultiSessionRequest, grpc.ServerStreamingServer[SessionObject]) error {
-	return status.Errorf(codes.Unimplemented, "method GetUserSessionsStream not implemented")
+func (UnimplementedAuthServer) ListSessionStream(*MultiSessionRequest, grpc.ServerStreamingServer[SessionObject]) error {
+	return status.Errorf(codes.Unimplemented, "method ListSessionStream not implemented")
 }
 func (UnimplementedAuthServer) RevokeSession(context.Context, *SessionRevokeRequest) (*StandardResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RevokeSession not implemented")
@@ -248,16 +248,16 @@ func _Auth_GetSessionInfo_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Auth_GetUserSessionsStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _Auth_ListSessionStream_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(MultiSessionRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(AuthServer).GetUserSessionsStream(m, &grpc.GenericServerStream[MultiSessionRequest, SessionObject]{ServerStream: stream})
+	return srv.(AuthServer).ListSessionStream(m, &grpc.GenericServerStream[MultiSessionRequest, SessionObject]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Auth_GetUserSessionsStreamServer = grpc.ServerStreamingServer[SessionObject]
+type Auth_ListSessionStreamServer = grpc.ServerStreamingServer[SessionObject]
 
 func _Auth_RevokeSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SessionRevokeRequest)
@@ -307,8 +307,8 @@ var Auth_ServiceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "GetUserSessionsStream",
-			Handler:       _Auth_GetUserSessionsStream_Handler,
+			StreamName:    "ListSessionStream",
+			Handler:       _Auth_ListSessionStream_Handler,
 			ServerStreams: true,
 		},
 	},

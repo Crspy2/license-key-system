@@ -12,7 +12,7 @@ import * as globals_pb from "./globals_pb";
 interface IStaffService extends grpc.ServiceDefinition<grpc.UntypedServiceImplementation> {
     setStaffAccess: IStaffService_ISetStaffAccess;
     getStaff: IStaffService_IGetStaff;
-    getAllStaffStream: IStaffService_IGetAllStaffStream;
+    listStaffStream: IStaffService_IListStaffStream;
     setStaffPermissions: IStaffService_ISetStaffPermissions;
     setStaffRole: IStaffService_ISetStaffRole;
 }
@@ -35,8 +35,8 @@ interface IStaffService_IGetStaff extends grpc.MethodDefinition<staff_pb.StaffId
     responseSerialize: grpc.serialize<staff_pb.StaffObject>;
     responseDeserialize: grpc.deserialize<staff_pb.StaffObject>;
 }
-interface IStaffService_IGetAllStaffStream extends grpc.MethodDefinition<google_protobuf_empty_pb.Empty, staff_pb.StaffObject> {
-    path: "/protofiles.Staff/GetAllStaffStream";
+interface IStaffService_IListStaffStream extends grpc.MethodDefinition<google_protobuf_empty_pb.Empty, staff_pb.StaffObject> {
+    path: "/protofiles.Staff/ListStaffStream";
     requestStream: false;
     responseStream: true;
     requestSerialize: grpc.serialize<google_protobuf_empty_pb.Empty>;
@@ -68,7 +68,7 @@ export const StaffService: IStaffService;
 export interface IStaffServer extends grpc.UntypedServiceImplementation {
     setStaffAccess: grpc.handleUnaryCall<staff_pb.StaffAccessRequest, staff_pb.ApprovalResponse>;
     getStaff: grpc.handleUnaryCall<staff_pb.StaffIdRequest, staff_pb.StaffObject>;
-    getAllStaffStream: grpc.handleServerStreamingCall<google_protobuf_empty_pb.Empty, staff_pb.StaffObject>;
+    listStaffStream: grpc.handleServerStreamingCall<google_protobuf_empty_pb.Empty, staff_pb.StaffObject>;
     setStaffPermissions: grpc.handleUnaryCall<staff_pb.MultiPermissionRequest, globals_pb.StandardResponse>;
     setStaffRole: grpc.handleUnaryCall<staff_pb.StaffRoleRequest, globals_pb.StandardResponse>;
 }
@@ -80,8 +80,8 @@ export interface IStaffClient {
     getStaff(request: staff_pb.StaffIdRequest, callback: (error: grpc.ServiceError | null, response: staff_pb.StaffObject) => void): grpc.ClientUnaryCall;
     getStaff(request: staff_pb.StaffIdRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: staff_pb.StaffObject) => void): grpc.ClientUnaryCall;
     getStaff(request: staff_pb.StaffIdRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: staff_pb.StaffObject) => void): grpc.ClientUnaryCall;
-    getAllStaffStream(request: google_protobuf_empty_pb.Empty, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<staff_pb.StaffObject>;
-    getAllStaffStream(request: google_protobuf_empty_pb.Empty, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<staff_pb.StaffObject>;
+    listStaffStream(request: google_protobuf_empty_pb.Empty, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<staff_pb.StaffObject>;
+    listStaffStream(request: google_protobuf_empty_pb.Empty, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<staff_pb.StaffObject>;
     setStaffPermissions(request: staff_pb.MultiPermissionRequest, callback: (error: grpc.ServiceError | null, response: globals_pb.StandardResponse) => void): grpc.ClientUnaryCall;
     setStaffPermissions(request: staff_pb.MultiPermissionRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: globals_pb.StandardResponse) => void): grpc.ClientUnaryCall;
     setStaffPermissions(request: staff_pb.MultiPermissionRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: globals_pb.StandardResponse) => void): grpc.ClientUnaryCall;
@@ -98,8 +98,8 @@ export class StaffClient extends grpc.Client implements IStaffClient {
     public getStaff(request: staff_pb.StaffIdRequest, callback: (error: grpc.ServiceError | null, response: staff_pb.StaffObject) => void): grpc.ClientUnaryCall;
     public getStaff(request: staff_pb.StaffIdRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: staff_pb.StaffObject) => void): grpc.ClientUnaryCall;
     public getStaff(request: staff_pb.StaffIdRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: staff_pb.StaffObject) => void): grpc.ClientUnaryCall;
-    public getAllStaffStream(request: google_protobuf_empty_pb.Empty, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<staff_pb.StaffObject>;
-    public getAllStaffStream(request: google_protobuf_empty_pb.Empty, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<staff_pb.StaffObject>;
+    public listStaffStream(request: google_protobuf_empty_pb.Empty, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<staff_pb.StaffObject>;
+    public listStaffStream(request: google_protobuf_empty_pb.Empty, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<staff_pb.StaffObject>;
     public setStaffPermissions(request: staff_pb.MultiPermissionRequest, callback: (error: grpc.ServiceError | null, response: globals_pb.StandardResponse) => void): grpc.ClientUnaryCall;
     public setStaffPermissions(request: staff_pb.MultiPermissionRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: globals_pb.StandardResponse) => void): grpc.ClientUnaryCall;
     public setStaffPermissions(request: staff_pb.MultiPermissionRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: globals_pb.StandardResponse) => void): grpc.ClientUnaryCall;

@@ -66,10 +66,11 @@ export default function PermissionSelect({ permissions, control, name }: Permiss
         multiValueRemove: (provided) => ({
             ...provided,
             color: '#a0aec0',
+            display: "none",
             '&:hover': {
                 backgroundColor: 'rgb(248 113 113)',
                 color: 'white'
-            }
+            },
         }),
         menuPortal: (base) => ({ ...base, zIndex: 9999 }),
     }
@@ -82,7 +83,7 @@ export default function PermissionSelect({ permissions, control, name }: Permiss
             onChange={handleChange}
             value={permissions.filter((perm) => value?.includes(perm.value))}
             name={name}
-            className="dark text-sm max-w-[30rem]"
+            className="dark text-sm max-w-[35rem]"
             styles={customStyles}
             placeholder="Select permissions..."
             menuPosition="fixed"

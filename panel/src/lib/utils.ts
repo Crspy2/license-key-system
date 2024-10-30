@@ -13,7 +13,7 @@ const permissionNames: Record<string, number> = {
   Compensate: 1 << 3,
   ProductStatus: 1 << 4,
   ManageProducts: 1 << 5,
-  DeleteUsers: 1 << 6,
+  ManageUsers: 1 << 6,
   GenerateKeys: 1 << 7,
   ManageStaff: 1 << 8,
 };

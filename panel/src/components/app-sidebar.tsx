@@ -20,8 +20,9 @@ import Image from "next/image"
 
 import { IoIosSend } from "react-icons/io"
 import { PiLifebuoyBold } from "react-icons/pi"
-import { FaBox, FaFileInvoice, FaKey, FaUserSecret, FaUsers, FaUsersGear } from "react-icons/fa6"
+import { FaBox, FaFileInvoice, FaKey, FaUsers, FaUsersGear } from "react-icons/fa6"
 import { IoTerminal } from "react-icons/io5"
+import { AiOutlineAudit } from "react-icons/ai"
 
 const data = {
   user: {
@@ -56,14 +57,14 @@ const data = {
       icon: FaFileInvoice,
     },
     {
-      title: "Offsets",
-      url: "/offsets",
-      icon: FaUserSecret,
-    },
-    {
       title: "Staff",
       url: "/staff",
       icon: FaUsersGear,
+    },
+    {
+      title: "Logs",
+      url: "/logs",
+      icon: AiOutlineAudit,
     },
   ],
   navSecondary: [
@@ -91,7 +92,7 @@ export function AppSidebar({ session, ...props }: React.ComponentProps<typeof Si
             <SidebarMenuButton size="lg" asChild>
               <Link href="/">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <Image src="/altera_dark.png" alt="company logo" width={500} height={500} />
+                  <Image src="/crspy_pfp.webp" alt="company logo" width={500} height={500} />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">Altera</span>

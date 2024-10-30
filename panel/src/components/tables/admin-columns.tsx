@@ -64,7 +64,7 @@ const PermissionCell = ({ row }: CellProps) => {
         { label: 'Compensate Keys', value: 1 << 3 },
         { label: 'Change Status', value: 1 << 4 },
         { label: 'Manage Products', value: 1 << 5 },
-        { label: 'Delete Users', value: 1 << 6 },
+        { label: 'Manage Users', value: 1 << 6 },
         { label: 'Generate Keys', value: 1 << 7 },
         { label: 'Manage Staff', value: 1 << 8 },
     ];

@@ -52,7 +52,7 @@ export const listStaff = cache(async () => {
     const md = await SetMetadata()
 
     const r = await new Promise<Safe<StaffObject[]>>((res) => {
-        const stream = staffClient.getAllStaffStream(new Empty(), md)
+        const stream = staffClient.listStaffStream(new Empty(), md)
         stream_callback(res)(stream)
     });
 

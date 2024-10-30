@@ -118,8 +118,8 @@ var StaffService = exports.StaffService = {
     responseSerialize: serialize_protofiles_StaffObject,
     responseDeserialize: deserialize_protofiles_StaffObject,
   },
-  getAllStaffStream: {
-    path: '/protofiles.Staff/GetAllStaffStream',
+  listStaffStream: {
+    path: '/protofiles.Staff/ListStaffStream',
     requestStream: false,
     responseStream: true,
     requestType: google_protobuf_empty_pb.Empty,

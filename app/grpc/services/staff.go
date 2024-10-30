@@ -15,7 +15,7 @@ type StaffServer struct {
 }
 
 func (s *StaffServer) SetStaffAccess(ctx context.Context, in *pf.StaffAccessRequest) (*pf.ApprovalResponse, error) {
-	session := ctx.Value("session").(*database.SessionModal)
+	session := ctx.Value("session").(*database.SessionModel)
 	if session == nil {
 		return nil, status.Errorf(codes.Unauthenticated, "No session information found")
 	}
@@ -31,7 +31,7 @@ func (s *StaffServer) SetStaffAccess(ctx context.Context, in *pf.StaffAccessRequ
 		return nil, status.Errorf(codes.InvalidArgument, "Staff Id is required")
 	}
 
-	if session.Staff.Id == staffId {
+	if session.Staff.ID == staffId {
 		return nil, status.Errorf(codes.PermissionDenied, "You cannot modify your own permissions")
 	}
 
@@ -51,7 +51,7 @@ func (s *StaffServer) SetStaffAccess(ctx context.Context, in *pf.StaffAccessRequ
 	return &pf.ApprovalResponse{
 		Message: fmt.Sprintf("%s's access to the panel has been updated", staff.Name),
 		Staff: &pf.StaffObject{
-			Id:       staff.Id,
+			Id:       staff.ID,
 			Name:     staff.Name,
 			Role:     staff.Role,
 			Image:    &staff.Image,
@@ -73,7 +73,7 @@ func (s *StaffServer) GetStaff(_ context.Context, in *pf.StaffIdRequest) (*pf.St
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
 	return &pf.StaffObject{
-		Id:       staff.Id,
+		Id:       staff.ID,
 		Name:     staff.Name,
 		Role:     staff.Role,
 		Image:    &staff.Image,
@@ -82,7 +82,7 @@ func (s *StaffServer) GetStaff(_ context.Context, in *pf.StaffIdRequest) (*pf.St
 	}, nil
 }
 
-func (s *StaffServer) GetAllStaffStream(_ *empty.Empty, stream pf.Staff_GetAllStaffStreamServer) error {
+func (s *StaffServer) ListStaffStream(_ *empty.Empty, stream pf.Staff_ListStaffStreamServer) error {
 	staffMembers, err := database.Client.Staff.GetAll()
 	if err != nil {
 		return status.Errorf(codes.NotFound, err.Error())
@@ -96,7 +96,7 @@ func (s *StaffServer) GetAllStaffStream(_ *empty.Empty, stream pf.Staff_GetAllSt
 		}
 
 		staffMember := &pf.StaffObject{
-			Id:       member.Id,
+			Id:       member.ID,
 			Name:     member.Name,
 			Role:     member.Role,
 			Image:    &member.Image,
@@ -112,13 +112,13 @@ func (s *StaffServer) GetAllStaffStream(_ *empty.Empty, stream pf.Staff_GetAllSt
 }
 
 func (s *StaffServer) SetStaffPermissions(ctx context.Context, in *pf.MultiPermissionRequest) (*pf.StandardResponse, error) {
-	session := ctx.Value("session").(*database.SessionModal)
+	session := ctx.Value("session").(*database.SessionModel)
 	if session == nil {
 		return nil, status.Errorf(codes.Unauthenticated, "No session information found")
 	}
 
 	if !session.Staff.HasPermission(database.ManageStaffPermission) {
-		return nil, status.Errorf(codes.PermissionDenied, "You do not have permission to perform this action")
+		return nil, status.Errorf(codes.PermissionDenied, "You do not have permission to update staff permissions")
 	}
 
 	staffId := in.GetStaffId()
@@ -127,7 +127,7 @@ func (s *StaffServer) SetStaffPermissions(ctx context.Context, in *pf.MultiPermi
 		return nil, status.Errorf(codes.InvalidArgument, "Staff Id is required")
 	}
 
-	if session.Staff.Id == staffId {
+	if session.Staff.ID == staffId {
 		return nil, status.Errorf(codes.PermissionDenied, "You cannot modify your own permissions")
 	}
 
@@ -170,7 +170,7 @@ func (s *StaffServer) SetStaffPermissions(ctx context.Context, in *pf.MultiPermi
 }
 
 func (s *StaffServer) SetStaffRole(ctx context.Context, in *pf.StaffRoleRequest) (*pf.StandardResponse, error) {
-	session := ctx.Value("session").(*database.SessionModal)
+	session := ctx.Value("session").(*database.SessionModel)
 	if session == nil {
 		return nil, status.Errorf(codes.Unauthenticated, "No session information found")
 	}
@@ -184,7 +184,7 @@ func (s *StaffServer) SetStaffRole(ctx context.Context, in *pf.StaffRoleRequest)
 	if staffId == "" {
 		return nil, status.Errorf(codes.InvalidArgument, "A staff id is required")
 	}
-	if session.Staff.Id == staffId {
+	if session.Staff.ID == staffId {
 		return nil, status.Errorf(codes.PermissionDenied, "You cannot modify your own role")
 	}
 

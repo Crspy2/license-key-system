@@ -49,20 +49,20 @@ func (s *AuthServer) Login(ctx context.Context, in *pf.LoginRequest) (*pf.LoginR
 		return nil, status.Errorf(codes.InvalidArgument, "Missing IP address")
 	}
 
-	sessionInfo := database.SessionModal{
-		StaffId:   staffMember.Id,
+	sessionInfo := database.SessionModel{
+		StaffID:   staffMember.ID,
 		IpAddress: ip[0],
 		UserAgent: userAgent[0],
 		ExpiresAt: time.Now().Add(5 * time.Hour),
 	}
 
-	_ = database.Client.Session.DeleteByIP(ip[0])
-	err = database.Client.Session.Create(&sessionInfo)
+	_ = database.Client.Sessions.DeleteByIP(ip[0])
+	err = database.Client.Sessions.Create(&sessionInfo)
 	if err != nil {
 		return nil, status.Errorf(codes.AlreadyExists, err.Error())
 	}
 
-	encryptedSessionToken, err := utils.EncryptToken(sessionInfo.Id)
+	encryptedSessionToken, err := utils.EncryptToken(sessionInfo.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -116,12 +116,12 @@ func (s *AuthServer) Register(ctx context.Context, in *pf.RegisterRequest) (*pf.
 }
 
 func (s *AuthServer) Logout(ctx context.Context, _ *empty.Empty) (*pf.StandardResponse, error) {
-	session := ctx.Value("session").(*database.SessionModal)
+	session := ctx.Value("session").(*database.SessionModel)
 	if session == nil {
 		return nil, status.Errorf(codes.Unauthenticated, "No session information found")
 	}
 
-	err := database.Client.Session.Delete(session)
+	err := database.Client.Sessions.Delete(session)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
@@ -132,7 +132,7 @@ func (s *AuthServer) Logout(ctx context.Context, _ *empty.Empty) (*pf.StandardRe
 }
 
 func (s *AuthServer) GetSessionInfo(ctx context.Context, _ *empty.Empty) (*pf.SingleSessionResponse, error) {
-	session := ctx.Value("session").(*database.SessionModal)
+	session := ctx.Value("session").(*database.SessionModel)
 	if session == nil {
 		return nil, status.Errorf(codes.Unauthenticated, "No session information found")
 	}
@@ -140,11 +140,11 @@ func (s *AuthServer) GetSessionInfo(ctx context.Context, _ *empty.Empty) (*pf.Si
 	return &pf.SingleSessionResponse{
 		Message: "Retrieved session information",
 		Data: &pf.SessionObject{
-			Id:        session.Id,
+			Id:        session.ID,
 			IpAddress: session.IpAddress,
 			UserAgent: session.UserAgent,
 			Staff: &pf.StaffObject{
-				Id:       session.Staff.Id,
+				Id:       session.Staff.ID,
 				Name:     session.Staff.Name,
 				Role:     session.Staff.Role,
 				Image:    &session.Staff.Image,
@@ -155,13 +155,13 @@ func (s *AuthServer) GetSessionInfo(ctx context.Context, _ *empty.Empty) (*pf.Si
 	}, nil
 }
 
-func (s *AuthServer) GetUserSessionsStream(in *pf.MultiSessionRequest, stream pf.Auth_GetUserSessionsStreamServer) error {
+func (s *AuthServer) ListSessionStream(in *pf.MultiSessionRequest, stream pf.Auth_ListSessionStreamServer) error {
 	staffId := in.GetStaffId()
 	if staffId == "" {
 		return status.Errorf(codes.InvalidArgument, "Invalid procedure call")
 	}
 
-	sessions, err := database.Client.Session.GetUserSessions(staffId)
+	sessions, err := database.Client.Sessions.GetUserSessions(staffId)
 	if err != nil {
 		return status.Errorf(codes.NotFound, err.Error())
 	}
@@ -178,11 +178,11 @@ func (s *AuthServer) GetUserSessionsStream(in *pf.MultiSessionRequest, stream pf
 		}
 
 		sessionItem := &pf.SessionObject{
-			Id:        session.Id,
+			Id:        session.ID,
 			IpAddress: session.IpAddress,
 			UserAgent: session.UserAgent,
 			Staff: &pf.StaffObject{
-				Id:       session.Staff.Id,
+				Id:       session.Staff.ID,
 				Name:     session.Staff.Name,
 				Role:     session.Staff.Role,
 				Image:    &session.Staff.Image,
@@ -205,12 +205,12 @@ func (s *AuthServer) RevokeSession(ctx context.Context, in *pf.SessionRevokeRequ
 		return nil, status.Errorf(codes.InvalidArgument, "Invalid procedure call")
 	}
 
-	session, err := database.Client.Session.Get(sessionId)
+	session, err := database.Client.Sessions.Get(sessionId)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
 
-	err = database.Client.Session.Delete(session)
+	err = database.Client.Sessions.Delete(session)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}

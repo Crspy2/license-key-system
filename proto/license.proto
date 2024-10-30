@@ -1,0 +1,43 @@
+syntax = "proto3";
+option go_package = "crspy2/licenses/protofiles";
+package protofiles;
+
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+import "product.proto";
+import "user.proto";
+import "globals.proto";
+
+message LicenseObject {
+  string id = 1;
+  google.protobuf.Duration duration = 2;
+  uint64 timesCompensated = 3;
+  uint64 hoursCompensated = 4;
+  optional google.protobuf.Timestamp activation = 5;
+  optional google.protobuf.Timestamp expiration = 6;
+  UserObject user = 7;
+  ProductObject product = 8;
+}
+
+service License {
+  rpc GetLicense(LicenseKeyRequest) returns (LicenseObject);
+  rpc UserLicenseKeyStream(UserIdRequest) returns (stream LicenseObject);
+
+  rpc CreateLicense(CreateLicenseRequest) returns (LicenseObject);
+  rpc RedeemLicense(RedeemLicenseRequest) returns (StandardResponse);
+}
+
+message LicenseKeyRequest {
+  string licenseKey = 1;
+}
+
+message CreateLicenseRequest {
+  string productId = 2;
+  google.protobuf.Duration duration = 3;
+}
+
+message RedeemLicenseRequest {
+  string licenseKey = 1;
+  uint64 userId = 2;
+}

@@ -91,32 +91,6 @@ export namespace StaffAccessRequest {
     }
 }
 
-export class ApprovalResponse extends jspb.Message { 
-    getMessage(): string;
-    setMessage(value: string): ApprovalResponse;
-
-    hasStaff(): boolean;
-    clearStaff(): void;
-    getStaff(): StaffObject | undefined;
-    setStaff(value?: StaffObject): ApprovalResponse;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): ApprovalResponse.AsObject;
-    static toObject(includeInstance: boolean, msg: ApprovalResponse): ApprovalResponse.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: ApprovalResponse, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): ApprovalResponse;
-    static deserializeBinaryFromReader(message: ApprovalResponse, reader: jspb.BinaryReader): ApprovalResponse;
-}
-
-export namespace ApprovalResponse {
-    export type AsObject = {
-        message: string,
-        staff?: StaffObject.AsObject,
-    }
-}
-
 export class MultiPermissionRequest extends jspb.Message { 
     getStaffid(): string;
     setStaffid(value: string): MultiPermissionRequest;
@@ -185,5 +159,31 @@ export namespace StaffRoleRequest {
     export type AsObject = {
         staffid: string,
         role: number,
+    }
+}
+
+export class ApprovalResponse extends jspb.Message { 
+    getMessage(): string;
+    setMessage(value: string): ApprovalResponse;
+
+    hasStaff(): boolean;
+    clearStaff(): void;
+    getStaff(): StaffObject | undefined;
+    setStaff(value?: StaffObject): ApprovalResponse;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ApprovalResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: ApprovalResponse): ApprovalResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ApprovalResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ApprovalResponse;
+    static deserializeBinaryFromReader(message: ApprovalResponse, reader: jspb.BinaryReader): ApprovalResponse;
+}
+
+export namespace ApprovalResponse {
+    export type AsObject = {
+        message: string,
+        staff?: StaffObject.AsObject,
     }
 }

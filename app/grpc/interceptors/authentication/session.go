@@ -2,7 +2,6 @@ package authentication
 
 import (
 	"context"
-	"fmt"
 	"google.golang.org/grpc"
 	"slices"
 	"strings"
@@ -25,7 +24,6 @@ func (i *AuthInterceptor) UnaryServerInterceptor() grpc.UnaryServerInterceptor {
 		if err != nil {
 			return nil, err
 		}
-		fmt.Println("TESTING SHIT")
 		return handler(newCtx, req)
 	}
 }

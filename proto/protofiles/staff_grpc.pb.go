@@ -22,7 +22,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	Staff_SetStaffAccess_FullMethodName      = "/protofiles.Staff/SetStaffAccess"
 	Staff_GetStaff_FullMethodName            = "/protofiles.Staff/GetStaff"
-	Staff_GetAllStaffStream_FullMethodName   = "/protofiles.Staff/GetAllStaffStream"
+	Staff_ListStaffStream_FullMethodName     = "/protofiles.Staff/ListStaffStream"
 	Staff_SetStaffPermissions_FullMethodName = "/protofiles.Staff/SetStaffPermissions"
 	Staff_SetStaffRole_FullMethodName        = "/protofiles.Staff/SetStaffRole"
 )
@@ -33,7 +33,7 @@ const (
 type StaffClient interface {
 	SetStaffAccess(ctx context.Context, in *StaffAccessRequest, opts ...grpc.CallOption) (*ApprovalResponse, error)
 	GetStaff(ctx context.Context, in *StaffIdRequest, opts ...grpc.CallOption) (*StaffObject, error)
-	GetAllStaffStream(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StaffObject], error)
+	ListStaffStream(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StaffObject], error)
 	SetStaffPermissions(ctx context.Context, in *MultiPermissionRequest, opts ...grpc.CallOption) (*StandardResponse, error)
 	SetStaffRole(ctx context.Context, in *StaffRoleRequest, opts ...grpc.CallOption) (*StandardResponse, error)
 }
@@ -66,9 +66,9 @@ func (c *staffClient) GetStaff(ctx context.Context, in *StaffIdRequest, opts ...
 	return out, nil
 }
 
-func (c *staffClient) GetAllStaffStream(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StaffObject], error) {
+func (c *staffClient) ListStaffStream(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StaffObject], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &Staff_ServiceDesc.Streams[0], Staff_GetAllStaffStream_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &Staff_ServiceDesc.Streams[0], Staff_ListStaffStream_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (c *staffClient) GetAllStaffStream(ctx context.Context, in *emptypb.Empty, 
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Staff_GetAllStaffStreamClient = grpc.ServerStreamingClient[StaffObject]
+type Staff_ListStaffStreamClient = grpc.ServerStreamingClient[StaffObject]
 
 func (c *staffClient) SetStaffPermissions(ctx context.Context, in *MultiPermissionRequest, opts ...grpc.CallOption) (*StandardResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
@@ -111,7 +111,7 @@ func (c *staffClient) SetStaffRole(ctx context.Context, in *StaffRoleRequest, op
 type StaffServer interface {
 	SetStaffAccess(context.Context, *StaffAccessRequest) (*ApprovalResponse, error)
 	GetStaff(context.Context, *StaffIdRequest) (*StaffObject, error)
-	GetAllStaffStream(*emptypb.Empty, grpc.ServerStreamingServer[StaffObject]) error
+	ListStaffStream(*emptypb.Empty, grpc.ServerStreamingServer[StaffObject]) error
 	SetStaffPermissions(context.Context, *MultiPermissionRequest) (*StandardResponse, error)
 	SetStaffRole(context.Context, *StaffRoleRequest) (*StandardResponse, error)
 	mustEmbedUnimplementedStaffServer()
@@ -130,8 +130,8 @@ func (UnimplementedStaffServer) SetStaffAccess(context.Context, *StaffAccessRequ
 func (UnimplementedStaffServer) GetStaff(context.Context, *StaffIdRequest) (*StaffObject, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStaff not implemented")
 }
-func (UnimplementedStaffServer) GetAllStaffStream(*emptypb.Empty, grpc.ServerStreamingServer[StaffObject]) error {
-	return status.Errorf(codes.Unimplemented, "method GetAllStaffStream not implemented")
+func (UnimplementedStaffServer) ListStaffStream(*emptypb.Empty, grpc.ServerStreamingServer[StaffObject]) error {
+	return status.Errorf(codes.Unimplemented, "method ListStaffStream not implemented")
 }
 func (UnimplementedStaffServer) SetStaffPermissions(context.Context, *MultiPermissionRequest) (*StandardResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetStaffPermissions not implemented")
@@ -196,16 +196,16 @@ func _Staff_GetStaff_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Staff_GetAllStaffStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _Staff_ListStaffStream_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(emptypb.Empty)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(StaffServer).GetAllStaffStream(m, &grpc.GenericServerStream[emptypb.Empty, StaffObject]{ServerStream: stream})
+	return srv.(StaffServer).ListStaffStream(m, &grpc.GenericServerStream[emptypb.Empty, StaffObject]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Staff_GetAllStaffStreamServer = grpc.ServerStreamingServer[StaffObject]
+type Staff_ListStaffStreamServer = grpc.ServerStreamingServer[StaffObject]
 
 func _Staff_SetStaffPermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MultiPermissionRequest)
@@ -269,8 +269,8 @@ var Staff_ServiceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "GetAllStaffStream",
-			Handler:       _Staff_GetAllStaffStream_Handler,
+			StreamName:    "ListStaffStream",
+			Handler:       _Staff_ListStaffStream_Handler,
 			ServerStreams: true,
 		},
 	},

@@ -11,8 +11,11 @@ import (
 )
 
 type Database struct {
-	Staff   *Staff
-	Session *Session
+	Staff    *Staff
+	Sessions *Session
+	Users    *User
+	Products *Product
+	Licenses *License
 }
 
 var Client *Database
@@ -37,8 +40,11 @@ func newDatabase() *Database {
 	}
 
 	db := &Database{
-		Staff:   newStaff(i),
-		Session: newSessions(i),
+		Staff:    newStaff(i),
+		Sessions: newSessions(i),
+		Users:    newUser(i),
+		Products: newProduct(i),
+		Licenses: newLicense(i),
 	}
 	return db
 }
@@ -46,7 +52,10 @@ func newDatabase() *Database {
 func (db *Database) createTables() {
 	migrateTables(
 		db.Staff,
-		db.Session,
+		db.Sessions,
+		db.Users,
+		db.Products,
+		db.Licenses,
 	)
 }
 

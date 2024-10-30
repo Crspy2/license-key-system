@@ -22,21 +22,19 @@ func authorizeSession(ctx context.Context) (context.Context, error) {
 		return nil, status.Errorf(codes.Unauthenticated, "Authentication failed: %v", err)
 	}
 
-	fmt.Println(session)
-
 	if !session.Staff.Approved {
 		return nil, status.Errorf(codes.PermissionDenied, "Your account has not yet been approved")
 	}
 	return ctx, nil
 }
 
-func RetrieveSessionFromContext(ctx context.Context) (*database.SessionModal, context.Context, error) {
+func RetrieveSessionFromContext(ctx context.Context) (*database.SessionModel, context.Context, error) {
 	// Extract metadata from the context
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil, nil, status.Errorf(codes.InvalidArgument, "Missing metadata")
 	}
-
+	fmt.Println("Metadata: ", md)
 	// Get session token from metadata
 	encryptedSessionToken, ok := md["session_token"]
 	if !ok {
@@ -49,7 +47,7 @@ func RetrieveSessionFromContext(ctx context.Context) (*database.SessionModal, co
 	}
 
 	// Fetch the session from the database
-	session, err := database.Client.Session.Get(sessionToken)
+	session, err := database.Client.Sessions.Get(sessionToken)
 	if err != nil {
 		return nil, nil, status.Errorf(codes.Unauthenticated, "Invalid session token")
 	}
