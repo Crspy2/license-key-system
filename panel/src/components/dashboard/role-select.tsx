@@ -1,9 +1,13 @@
 "use client"
 
 import React from 'react'
-import Select, { StylesConfig } from 'react-select'
+import dynamic from "next/dynamic"
+import type { StylesConfig } from 'react-select'
 import makeAnimated from "react-select/animated"
 import { useController, Control } from "react-hook-form"
+const Select = dynamic(() => import('react-select').then((mod) => mod.default), {
+    ssr: false,
+})
 
 interface RoleSelectProps {
     roles: { label: string; value: number }[]
@@ -76,6 +80,7 @@ export default function RoleSelect({ roles, control, name }: RoleSelectProps) {
             placeholder="Select role..."
             menuPosition="fixed"
             menuPlacement="auto"
+            instanceId={"roleSelect"}
             ref={ref}
         />
     )

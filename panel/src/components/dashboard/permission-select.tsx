@@ -1,9 +1,13 @@
 "use client"
 
 import React from 'react'
-import Select, { StylesConfig } from 'react-select'
+import dynamic from "next/dynamic"
+import { type StylesConfig } from 'react-select'
 import makeAnimated from "react-select/animated"
 import { useController, Control } from "react-hook-form"
+const Select = dynamic(() => import('react-select').then((mod) => mod.default), {
+    ssr: false,
+})
 
 interface PermissionSelectProps {
     permissions: { label: string; value: number }[]

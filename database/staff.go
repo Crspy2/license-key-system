@@ -2,6 +2,7 @@ package database
 
 import (
 	"errors"
+	"fmt"
 	"go.jetify.com/typeid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -104,36 +105,50 @@ func (s *Staff) schema() error {
 	return s.db.AutoMigrate(&StaffModel{})
 }
 
+func (s *Staff) get(id string) (*StaffModel, error) {
+	var staff StaffModel
+
+	err := s.db.
+		Where(&StaffModel{ID: id}).
+		First(&staff).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &staff, nil
+}
+
 func (s *Staff) GetById(id string) (*StaffModel, error) {
-	var user StaffModel
+	var staff StaffModel
 
 	err := s.db.
 		Preload(clause.Associations).
 		Where(&StaffModel{ID: id}).
-		First(&user).
+		First(&staff).
 		Error
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &user, nil
+	return &staff, nil
 }
 
 func (s *Staff) GetByName(name string) (*StaffModel, error) {
-	var user StaffModel
+	var staff StaffModel
 
 	err := s.db.
-		Preload(clause.Associations).
 		Where(&StaffModel{Name: name}).
-		First(&user).
+		First(&staff).
 		Error
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &user, nil
+	return &staff, nil
 }
 
 func (s *Staff) List() ([]StaffModel, error) {
@@ -148,27 +163,21 @@ func (s *Staff) List() ([]StaffModel, error) {
 }
 
 func (s *Staff) Create(name, passwordHash string) (*StaffModel, error) {
-	user := StaffModel{
+	staff := StaffModel{
 		Name:         name,
 		PasswordHash: passwordHash,
 	}
 
-	err := s.db.Create(&user).Error
+	err := s.db.Create(&staff).Error
 	if err != nil {
 		return nil, err
 	}
 
-	return &user, nil
+	return &staff, nil
 }
 
 func (s *Staff) Authenticate(name, password string) (*StaffModel, error) {
-	var staff StaffModel
-
-	err := s.db.
-		Preload(clause.Associations).
-		Where(&StaffModel{Name: name}).
-		First(&staff).
-		Error
+	staff, err := s.GetByName(name)
 
 	if err != nil {
 		return nil, err
@@ -179,11 +188,11 @@ func (s *Staff) Authenticate(name, password string) (*StaffModel, error) {
 		return nil, errors.New("passwords did not match")
 	}
 
-	return &staff, nil
+	return staff, nil
 }
 
 func (s *Staff) SetAccess(id string, approved bool) (*StaffModel, error) {
-	staff, err := s.GetById(id)
+	staff, err := s.get(id)
 	if err != nil {
 		return nil, err
 	}
@@ -203,7 +212,7 @@ func (s *Staff) SetAccess(id string, approved bool) (*StaffModel, error) {
 }
 
 func (s *Staff) AddPermission(id string, permission Permission) error {
-	staff, err := s.GetById(id)
+	staff, err := s.get(id)
 	if err != nil {
 		return err
 	}
@@ -213,7 +222,7 @@ func (s *Staff) AddPermission(id string, permission Permission) error {
 }
 
 func (s *Staff) RemovePermission(id string, permission Permission) error {
-	staff, err := s.GetById(id)
+	staff, err := s.get(id)
 	if err != nil {
 		return err
 	}
@@ -223,8 +232,9 @@ func (s *Staff) RemovePermission(id string, permission Permission) error {
 }
 
 func (s *Staff) SetPermissions(id string, permissions []Permission) (*StaffModel, error) {
-	staff, err := s.GetById(id)
+	staff, err := s.get(id)
 	if err != nil {
+		fmt.Println("ERROR: ", err)
 		return nil, err
 	}
 
@@ -235,6 +245,7 @@ func (s *Staff) SetPermissions(id string, permissions []Permission) (*StaffModel
 	staff.Perms = newPerms
 
 	if err := s.db.Save(staff).Error; err != nil {
+		fmt.Println("Error 2: ", err)
 		return nil, err
 	}
 
@@ -242,7 +253,7 @@ func (s *Staff) SetPermissions(id string, permissions []Permission) (*StaffModel
 }
 
 func (s *Staff) SetRole(id string, role Role) (*StaffModel, error) {
-	staff, err := s.GetById(id)
+	staff, err := s.get(id)
 	if err != nil {
 		return nil, err
 	}

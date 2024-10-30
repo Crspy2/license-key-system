@@ -132,16 +132,15 @@ func (s *StaffServer) SetStaffPermissions(ctx context.Context, in *pf.MultiPermi
 	}
 
 	staff, err := database.Client.Staff.GetById(staffId)
-
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "Staff member could not be found")
 	}
 
-	perms := in.GetPermissions()
-
-	if len(perms) == 0 {
-		return nil, status.Errorf(codes.InvalidArgument, "Permissions are required")
+	if !session.Staff.HasHigherRole(*staff) || !session.Staff.HasHigherPermissions(*staff) {
+		return nil, status.Errorf(codes.PermissionDenied, "You do not have permission to perform this action")
 	}
+
+	perms := in.GetPermissions()
 
 	var permissions []database.Permission
 
@@ -149,14 +148,13 @@ func (s *StaffServer) SetStaffPermissions(ctx context.Context, in *pf.MultiPermi
 		permissions = append(permissions, database.Permission(perm))
 	}
 
-	// Check if setting permissions would result in the user gaining more permissions than the current user
 	var newPerms database.Permission
 	for _, permission := range permissions {
 		newPerms |= permission
 	}
 	staff.Perms = newPerms
 
-	if !session.Staff.HasHigherPermissions(*staff) || !session.Staff.HasHigherRole(*staff) {
+	if !session.Staff.HasHigherPermissions(*staff) {
 		return nil, status.Errorf(codes.PermissionDenied, "You do not have permission to perform this action")
 	}
 
@@ -191,6 +189,10 @@ func (s *StaffServer) SetStaffRole(ctx context.Context, in *pf.StaffRoleRequest)
 	staff, err := database.Client.Staff.GetById(staffId)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "Staff member could not be found")
+	}
+
+	if !session.Staff.HasHigherRole(*staff) || !session.Staff.HasHigherPermissions(*staff) {
+		return nil, status.Errorf(codes.PermissionDenied, "#1 You do not have permission to perform this action")
 	}
 
 	role := in.GetRole()

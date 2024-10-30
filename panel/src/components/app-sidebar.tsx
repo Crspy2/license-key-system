@@ -109,7 +109,7 @@ export function AppSidebar({ session, ...props }: React.ComponentProps<typeof Si
       </SidebarHeader>
       <SidebarContent>
         <MainNav items={data.mainNav} />
-        {session.staff.role > 2 || session.staff.permsList.includes("ManageUsers") && (
+        {(session.staff.role > 2 || session.staff.permsList.includes("ManageStaff")) && (
             <StaffNav items={data.staffNav} />
         )}
         <NavSecondary items={data.secondaryNav} className="mt-auto" />
