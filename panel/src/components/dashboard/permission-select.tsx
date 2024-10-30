@@ -33,9 +33,8 @@ export default function PermissionSelect({ permissions, control, name }: Permiss
             color: '#2c2d31', // Text color
             border: '1px solid #2c2d31',
             boxShadow: 'none',
-            flexWrap: "wrap", // Allows wrapping when multiple items are selected
-            overflowY: 'scroll', // Ensures the height grows
-            overflowX: 'hidden',
+            flexWrap: 'wrap',
+            overflowY: 'hidden',
             maxHeight: '2.5rem',
             '&:hover': {
                 borderColor: '#3f51b5' ,
@@ -52,7 +51,12 @@ export default function PermissionSelect({ permissions, control, name }: Permiss
             height: '38px',
 
         }),
-        menu: (provided) => ({ ...provided, backgroundColor: '#1a1b1e', position: 'absolute' }),
+        menu: (provided) => ({
+            ...provided,
+            backgroundColor: '#1a1b1e',
+            position: 'absolute',
+
+        }),
         option: (provided, state) => ({
             ...provided,
             backgroundColor: state.isSelected ? '#3f51b5' : state.isFocused ? '#2c2d31' : '#1a1b1e',
