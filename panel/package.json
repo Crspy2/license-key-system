@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
+    "dev": "npm run grpc && next dev --turbopack",
+    "build": "npm run grpc && bun run next build",
     "start": "next start",
     "lint": "next lint",
-    "generate:grpc": "grpc_tools_node_protoc --plugin=protoc-gen-ts=./node_modules/.bin/protoc-gen-ts --grpc_out=grpc_js:./src/proto --js_out=import_style=commonjs:./src/proto --ts_out=grpc_js:./src/proto -I ../proto ../proto/*.proto"
+    "grpc": "rm -rf ./src/proto && mkdir ./src/proto && grpc_tools_node_protoc --plugin=protoc-gen-ts=./node_modules/.bin/protoc-gen-ts --grpc_out=grpc_js:./src/proto --js_out=import_style=commonjs:./src/proto --ts_out=grpc_js:./src/proto -I ../proto ../proto/*.proto"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.12.2",
