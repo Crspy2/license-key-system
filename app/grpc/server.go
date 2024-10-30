@@ -83,6 +83,7 @@ func StartGRPCServer(l *zap.SugaredLogger) {
 	pf.RegisterUserServer(s, &services.UserServer{})
 	pf.RegisterProductServer(s, &services.ProductServer{})
 	pf.RegisterLicenseServer(s, &services.LicenseServer{})
+	pf.RegisterLogServer(s, &services.LogServer{})
 
 	if os.Getenv("RAILWAY_ENVIRONMENT_NAME") != "production" {
 		reflection.Register(s)

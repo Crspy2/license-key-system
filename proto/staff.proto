@@ -10,9 +10,8 @@ message StaffObject {
   string id = 1;
   string name = 2;
   int32 role = 3;
-  optional string image = 4;
-  repeated string perms = 5;
-  bool approved = 6;
+  repeated string perms = 4;
+  bool approved = 5;
 }
 
 service Staff {

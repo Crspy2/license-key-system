@@ -4,10 +4,12 @@ import (
 	"context"
 	"crspy2/licenses/database"
 	pf "crspy2/licenses/proto/protofiles"
+	"fmt"
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"time"
 )
 
 type ProductServer struct {
@@ -118,6 +120,8 @@ func (s *ProductServer) CreateProduct(ctx context.Context, in *pf.ProductCreateR
 		pausedAt = nil
 	}
 
+	_, _ = database.Client.Logs.LogEvent(session.StaffID, "Product", "Product Created", fmt.Sprintf("%s has created a new product called %s", session.Staff.Name, productName), time.Now())
+
 	return &pf.ProductObject{
 		Id:       product.ID,
 		Name:     product.Name,
@@ -141,10 +145,12 @@ func (s *ProductServer) DeleteProduct(ctx context.Context, in *pf.ProductIdReque
 		return nil, status.Errorf(codes.InvalidArgument, "A product id is required")
 	}
 
-	_, err := database.Client.Products.Delete(productId)
+	product, err := database.Client.Products.Delete(productId)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "Product could not be found")
 	}
+
+	_, _ = database.Client.Logs.LogEvent(session.StaffID, "Product", "Product Deleted", fmt.Sprintf("%s has deleted the %s product", session.Staff.Name, product.Name), time.Now())
 
 	return &pf.StandardResponse{
 		Message: "Product deleted",
@@ -171,13 +177,15 @@ func (s *ProductServer) CompensateProduct(ctx context.Context, in *pf.ProductCom
 		return nil, status.Errorf(codes.InvalidArgument, "A product status is required")
 	}
 
-	_, err := database.Client.Products.CompensateKeys(productId, compTime.AsDuration())
+	product, err := database.Client.Products.CompensateKeys(productId, compTime.AsDuration())
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "Product could not be found")
 	}
 
+	_, _ = database.Client.Logs.LogEvent(session.StaffID, "Product", "Product Compensated", fmt.Sprintf("%s has deleted the %s product", session.Staff.Name, product.Name), time.Now())
+
 	return &pf.StandardResponse{
-		Message: "Product status updated",
+		Message: fmt.Sprintf("Successfully compensated %f to all active license keys for %s", compTime.AsDuration().Hours(), product.Name),
 	}, nil
 }
 
@@ -201,10 +209,12 @@ func (s *ProductServer) SetProductStatus(ctx context.Context, in *pf.ProductStat
 		return nil, status.Errorf(codes.InvalidArgument, "A product status is required")
 	}
 
-	_, err := database.Client.Products.SetStatus(productId, productStatus)
+	product, err := database.Client.Products.SetStatus(productId, productStatus)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "Product could not be found")
 	}
+
+	_, _ = database.Client.Logs.LogEvent(session.StaffID, "Product", "Product Status Changed", fmt.Sprintf("%s has set the status of %s to %s", session.Staff.Name, product.Name, product.Status), time.Now())
 
 	return &pf.StandardResponse{
 		Message: "Product status updated",

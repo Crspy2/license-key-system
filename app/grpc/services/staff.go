@@ -8,6 +8,8 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"strings"
+	"time"
 )
 
 type StaffServer struct {
@@ -48,20 +50,31 @@ func (s *StaffServer) SetStaffAccess(ctx context.Context, in *pf.StaffAccessRequ
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
+
+	_, _ = database.Client.Logs.LogEvent(session.StaffID, "Staff", "Staff Access Approved", fmt.Sprintf("%s has approved %s's access the panel", session.Staff.Name, staff.Name), time.Now())
+
 	return &pf.ApprovalResponse{
 		Message: fmt.Sprintf("%s's access to the panel has been updated", staff.Name),
 		Staff: &pf.StaffObject{
 			Id:       staff.ID,
 			Name:     staff.Name,
 			Role:     staff.Role,
-			Image:    &staff.Image,
 			Perms:    staff.GetPermissionNames(),
 			Approved: staff.Approved,
 		},
 	}, nil
 }
 
-func (s *StaffServer) GetStaff(_ context.Context, in *pf.StaffIdRequest) (*pf.StaffObject, error) {
+func (s *StaffServer) GetStaff(ctx context.Context, in *pf.StaffIdRequest) (*pf.StaffObject, error) {
+	session := ctx.Value("session").(*database.SessionModel)
+	if session == nil {
+		return nil, status.Errorf(codes.Unauthenticated, "No session information found")
+	}
+
+	if !session.Staff.HasPermission(database.ManageStaffPermission) && session.Staff.Role < database.DevRole {
+		return nil, status.Errorf(codes.PermissionDenied, "You do not have permission to view staff")
+	}
+
 	staffId := in.GetStaffId()
 
 	if staffId == "" {
@@ -76,13 +89,21 @@ func (s *StaffServer) GetStaff(_ context.Context, in *pf.StaffIdRequest) (*pf.St
 		Id:       staff.ID,
 		Name:     staff.Name,
 		Role:     staff.Role,
-		Image:    &staff.Image,
 		Perms:    staff.GetPermissionNames(),
 		Approved: staff.Approved,
 	}, nil
 }
 
 func (s *StaffServer) ListStaffStream(_ *empty.Empty, stream pf.Staff_ListStaffStreamServer) error {
+	session := stream.Context().Value("session").(*database.SessionModel)
+	if session == nil {
+		return status.Errorf(codes.Unauthenticated, "No session information found")
+	}
+
+	if !session.Staff.HasPermission(database.ManageStaffPermission) && session.Staff.Role < database.DevRole {
+		return status.Errorf(codes.PermissionDenied, "You do not have permission to view staff")
+	}
+
 	staffMembers, err := database.Client.Staff.List()
 	if err != nil {
 		return status.Errorf(codes.NotFound, err.Error())
@@ -99,7 +120,6 @@ func (s *StaffServer) ListStaffStream(_ *empty.Empty, stream pf.Staff_ListStaffS
 			Id:       member.ID,
 			Name:     member.Name,
 			Role:     member.Role,
-			Image:    &member.Image,
 			Perms:    member.GetPermissionNames(),
 			Approved: member.Approved,
 		}
@@ -162,6 +182,9 @@ func (s *StaffServer) SetStaffPermissions(ctx context.Context, in *pf.MultiPermi
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "Unable to set user's permissions")
 	}
+
+	_, _ = database.Client.Logs.LogEvent(session.StaffID, "Staff", "Staff Permissions Updated", fmt.Sprintf("%s has updated %s's permissions on the panel. They are now %s", session.Staff.Name, staff.Name, strings.Join(staff.GetPermissionNames(), ", ")), time.Now())
+
 	return &pf.StandardResponse{
 		Message: fmt.Sprintf("Successfully overwrote permissions for %s", staff.Name),
 	}, nil
@@ -210,6 +233,9 @@ func (s *StaffServer) SetStaffRole(ctx context.Context, in *pf.StaffRoleRequest)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "Unable to set user's role")
 	}
+
+	_, _ = database.Client.Logs.LogEvent(session.StaffID, "Staff", "Staff Permissions Updated", fmt.Sprintf("%s has updated %s's role on the panel to %s", session.Staff.Name, staff.Name, staff.GetRoleText()), time.Now())
+
 	return &pf.StandardResponse{
 		Message: fmt.Sprintf("Successfully set %s's role", staff.Name),
 	}, nil

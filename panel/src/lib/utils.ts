@@ -13,9 +13,10 @@ const permissionNames: Record<string, number> = {
   Compensate: 1 << 3,
   ProductStatus: 1 << 4,
   ManageProducts: 1 << 5,
-  ManageUsers: 1 << 6,
-  GenerateKeys: 1 << 7,
-  ManageStaff: 1 << 8,
+  GenerateKeys: 1 << 6,
+  ViewLogs: 1 << 6,
+  ManageUsers: 1 << 8,
+  ManageStaff: 1 << 9,
 };
 
 export const ConvertPermissionsToValues = (initialPermissions: string[]) => {

@@ -19,8 +19,9 @@ const (
 	CompensationPermission
 	ChangeStatusPermission
 	ManageProductsPermission
-	ManageUsersPermission
 	KeyGenPermission
+	ViewLogsPermission
+	ManageUsersPermission
 	ManageStaffPermission
 )
 
@@ -31,8 +32,9 @@ var permissionNames = map[Permission]string{
 	CompensationPermission:   "Compensate",
 	ChangeStatusPermission:   "ProductStatus",
 	ManageProductsPermission: "ManageProducts",
-	ManageUsersPermission:    "ManageUsers",
 	KeyGenPermission:         "GenerateKeys",
+	ViewLogsPermission:       "ViewLogs",
+	ManageUsersPermission:    "ManageUsers",
 	ManageStaffPermission:    "ManageStaff",
 }
 
@@ -49,8 +51,7 @@ const (
 type StaffModel struct {
 	ID           string `gorm:"unique;primaryKey"`
 	Name         string `gorm:"unique"`
-	Image        string
-	Role         Role `gorm:"default:0"`
+	Role         Role   `gorm:"default:0"`
 	PasswordHash string
 	Perms        Permission `gorm:"type:bigint"`
 	Approved     bool       `gorm:"default:false"`
@@ -72,7 +73,7 @@ func (sm *StaffModel) BeforeCreate(tx *gorm.DB) error {
 }
 
 func (sm *StaffModel) HasPermission(permission Permission) bool {
-	return sm.Perms&permission != 0
+	return sm.Perms&permission != 0 || sm.Role == OwnerRole
 }
 
 func (sm *StaffModel) GetPermissionNames() []string {
@@ -83,6 +84,22 @@ func (sm *StaffModel) GetPermissionNames() []string {
 		}
 	}
 	return perms
+}
+
+func (sm *StaffModel) GetRoleText() string {
+	switch sm.Role {
+	case 0:
+		return "Staff"
+	case 1:
+		return "Senior Staff"
+	case 2:
+		return "Lead Staff"
+	case 3:
+		return "Developer"
+	case 4:
+		return "Owner"
+	}
+	return "Staff"
 }
 
 func (sm *StaffModel) HasHigherPermissions(otherStaff StaffModel) bool {
@@ -154,7 +171,9 @@ func (s *Staff) GetByName(name string) (*StaffModel, error) {
 func (s *Staff) List() ([]StaffModel, error) {
 	var staff []StaffModel
 
-	err := s.db.Find(&staff).Error
+	err := s.db.Find(&staff).
+		Order("created_at asc").
+		Error
 	if err != nil {
 		return nil, err
 	}

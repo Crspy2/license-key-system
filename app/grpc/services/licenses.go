@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"time"
 )
 
 type LicenseServer struct {
@@ -183,6 +184,8 @@ func (s *LicenseServer) CreateLicense(ctx context.Context, in *pf.CreateLicenseR
 		pausedAt = nil
 	}
 
+	_, _ = database.Client.Logs.LogEvent(session.StaffID, "License Key", "License Key Generated", fmt.Sprintf("%s has generated a %fh key for %s", session.Staff.Name, license.Duration.Hours(), license.Product.Name), time.Now())
+
 	return &pf.LicenseObject{
 		Id:               license.ID,
 		Duration:         durationpb.New(license.Duration),
@@ -228,6 +231,8 @@ func (s *LicenseServer) RedeemLicense(ctx context.Context, in *pf.RedeemLicenseR
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "Unable to redeem license key")
 	}
+
+	_, _ = database.Client.Logs.LogEvent(session.StaffID, "License Key", "License Key Manually Redeemed", fmt.Sprintf("%s has manually redeemed a %fh key for %s on the account with UID=%d", session.Staff.Name, license.Duration.Hours(), license.Product.Name, userId), time.Now())
 
 	return &pf.StandardResponse{
 		Message: fmt.Sprintf("Successfully redeemed license key on %s's account", license.User.Name),

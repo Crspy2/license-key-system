@@ -30,7 +30,6 @@ export const staffColumns: ColumnDef<StaffObject.AsObject>[] = [
         cell: ({ row }) => (
             <div className="flex flex-row gap-1 justify-start items-center">
                 <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarImage src={row.original.image} alt={row.original.name} />
                     <AvatarFallback className="rounded-lg">{row.original.name.toUpperCase().slice(0, 2)}</AvatarFallback>
                 </Avatar>
                 <span className="text-xs lg:text-sm text-nowrap">{row.original.name}</span>

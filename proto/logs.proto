@@ -17,7 +17,7 @@ message LogObject {
   StaffObject staff = 6;
 }
 
-service Logs {
+service Log {
   rpc GetLog(LogIdRequest) returns (LogObject);
   rpc ListLogsStream(google.protobuf.Empty) returns (stream LogObject);
 }

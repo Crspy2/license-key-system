@@ -8,6 +8,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"time"
 )
 
 type UserServer struct {
@@ -43,6 +44,8 @@ func (s *UserServer) CreateUser(ctx context.Context, in *pf.UserCreateRequest) (
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "A user with that name already exists")
 	}
+
+	_, _ = database.Client.Logs.LogEvent(session.StaffID, "User", "Manual User Creation", fmt.Sprintf("%s has manually created a user account with username %s", session.Staff.Name, user.Name), time.Now())
 
 	return &pf.UserObject{
 		Id:     user.ID,
@@ -98,6 +101,8 @@ func (s *UserServer) ResetHardwareId(ctx context.Context, in *pf.UserIdRequest) 
 		return nil, status.Errorf(codes.NotFound, "User could not be found")
 	}
 
+	_, _ = database.Client.Logs.LogEvent(session.StaffID, "User", "HWID Reset", fmt.Sprintf("%s has issued a hardware id reset for %s's account", session.Staff.Name, user.Name), time.Now())
+
 	return &pf.StandardResponse{
 		Message: fmt.Sprintf("%s's Hardware ID has been reset. Their account will lock to the next device they sign in on", user.Name),
 	}, nil
@@ -122,6 +127,8 @@ func (s *UserServer) ResetPassword(ctx context.Context, in *pf.UserIdRequest) (*
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "User could not be found")
 	}
+
+	_, _ = database.Client.Logs.LogEvent(session.StaffID, "User", "Password Reset", fmt.Sprintf("%s has issued a password reset for %s's account", session.Staff.Name, user.Name), time.Now())
 
 	return &pf.StandardResponse{
 		Message: fmt.Sprintf("%s's password has been reset. The next password they enter at login will become their new password", user.Name),
@@ -148,6 +155,8 @@ func (s *UserServer) BanUser(ctx context.Context, in *pf.UserIdRequest) (*pf.Sta
 		return nil, status.Errorf(codes.NotFound, "User could not be found")
 	}
 
+	_, _ = database.Client.Logs.LogEvent(session.StaffID, "User", "User Ban Issued", fmt.Sprintf("%s has issued a ban to %s's account", session.Staff.Name, user.Name), time.Now())
+
 	return &pf.StandardResponse{
 		Message: fmt.Sprintf("A ban has been placed on %s's account. They will no longer be able to sign in", user.Name),
 	}, nil
@@ -172,6 +181,8 @@ func (s *UserServer) RevokeBan(ctx context.Context, in *pf.UserIdRequest) (*pf.S
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "User could not be found")
 	}
+
+	_, _ = database.Client.Logs.LogEvent(session.StaffID, "User", "User Ban Revoked", fmt.Sprintf("%s has revoked a ban to %s's account", session.Staff.Name, user.Name), time.Now())
 
 	return &pf.StandardResponse{
 		Message: fmt.Sprintf("The ban on %s's account has been revoked", user.Name),
