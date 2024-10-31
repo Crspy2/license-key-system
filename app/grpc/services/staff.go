@@ -34,7 +34,7 @@ func (s *StaffServer) SetStaffAccess(ctx context.Context, in *pf.StaffAccessRequ
 	}
 
 	if session.Staff.ID == staffId {
-		return nil, status.Errorf(codes.PermissionDenied, "You cannot modify your own permissions")
+		return nil, status.Errorf(codes.PermissionDenied, "You cannot modify your own access")
 	}
 
 	staff, err := database.Client.Staff.GetById(staffId)

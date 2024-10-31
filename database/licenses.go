@@ -92,3 +92,16 @@ func (s *License) Redeem(key string, userId uint64) (*LicenseModel, error) {
 
 	return license, nil
 }
+
+func (s *License) Revoke(userId uint64) (*UserModel, error) {
+	user, err := Client.Users.Get(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, license := range user.Licenses {
+		s.db.Delete(&license)
+	}
+
+	return user, nil
+}

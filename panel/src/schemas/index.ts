@@ -16,7 +16,10 @@ export const RegisterSchema = z.object({
 
 export const PermissionsSchema = z.object({
     staffId: z.string(),
-    permissions: z.number().int().array(),
+    permissions: z.object({
+        label: z.string(),
+        value: z.number(),
+    }).array()
 })
 
 export const RoleSchema = z.object({

@@ -35,8 +35,8 @@ export function DataTable<TData, TValue>({
     })
 
     return (
-        <div className="rounded-md">
-            <Table>
+        <div className="overflow-visible rounded-md">
+            <Table className="overflow-visible">
                 <TableHeader>
                     {table.getHeaderGroups().map((headerGroup) => (
                         <TableRow key={headerGroup.id}>
@@ -78,7 +78,7 @@ export function DataTable<TData, TValue>({
                     )}
                 </TableBody>
             </Table>
-            <DataTablePagination table={table} />
+            <DataTablePagination table={table}/>
         </div>
     )
 }

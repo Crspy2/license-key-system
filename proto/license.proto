@@ -26,6 +26,7 @@ service License {
 
   rpc CreateLicense(CreateLicenseRequest) returns (LicenseObject);
   rpc RedeemLicense(RedeemLicenseRequest) returns (StandardResponse);
+  rpc RevokeUserKeys(UserIdRequest) returns (StandardResponse);
 }
 
 message LicenseKeyRequest {

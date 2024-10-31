@@ -90,7 +90,7 @@ func (s *LicenseServer) UserLicenseKeyStream(in *pf.UserIdRequest, stream pf.Lic
 
 	userId := in.GetUserId()
 	if userId >= 0 {
-		return status.Errorf(codes.InvalidArgument, "User id is required")
+		return status.Errorf(codes.InvalidArgument, "A user id must be provided")
 	}
 
 	users, err := database.Client.Users.Get(userId)
@@ -204,6 +204,33 @@ func (s *LicenseServer) CreateLicense(ctx context.Context, in *pf.CreateLicenseR
 			Status:   license.Product.Status,
 			PausedAt: pausedAt,
 		},
+	}, nil
+}
+
+func (s *LicenseServer) RevokeUserKeys(ctx context.Context, in *pf.UserIdRequest) (*pf.StandardResponse, error) {
+	session := ctx.Value("session").(*database.SessionModel)
+	if session == nil {
+		return nil, status.Errorf(codes.Unauthenticated, "No session information found")
+	}
+
+	if !session.Staff.HasPermission(database.ManageUsersPermission) {
+		return nil, status.Errorf(codes.PermissionDenied, "You do not have permission to manage users")
+	}
+
+	userId := in.GetUserId()
+	if userId <= 0 {
+		return nil, status.Errorf(codes.InvalidArgument, "A user id must be provided")
+	}
+
+	user, err := database.Client.Licenses.Revoke(userId)
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "Unable to revoke license keys")
+	}
+
+	_, _ = database.Client.Logs.LogEvent(session.StaffID, "License Key", "License Keys Revoked", fmt.Sprintf("%s has revoked license keys on %s's account", session.Staff.Name, user.Name), time.Now())
+
+	return &pf.StandardResponse{
+		Message: fmt.Sprintf("License keys on %s's account have been revoked", user.Name),
 	}, nil
 }
 

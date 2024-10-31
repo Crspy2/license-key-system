@@ -59,7 +59,12 @@ func (s *Log) Get(id string) (*LogModel, error) {
 func (s *Log) List() ([]LogModel, error) {
 	var logs []LogModel
 
-	err := s.db.Find(&logs).Error
+	err := s.db.
+		Preload(clause.Associations).
+		Order("occurred_at DESC").
+		Find(&logs).
+		Error
+	
 	if err != nil {
 		return nil, err
 	}

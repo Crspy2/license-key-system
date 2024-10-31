@@ -14,7 +14,7 @@ const permissionNames: Record<string, number> = {
   ProductStatus: 1 << 4,
   ManageProducts: 1 << 5,
   GenerateKeys: 1 << 6,
-  ViewLogs: 1 << 6,
+  ViewLogs: 1 << 7,
   ManageUsers: 1 << 8,
   ManageStaff: 1 << 9,
 };

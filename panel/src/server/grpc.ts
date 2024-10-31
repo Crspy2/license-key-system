@@ -4,13 +4,13 @@ import {
     ClientReadableStream,
 } from '@grpc/grpc-js'
 import { AuthClient } from '@/proto/auth_grpc_pb'
+import { StaffClient } from "@/proto/staff_grpc_pb"
+import { LogClient } from "@/proto/logs_grpc_pb"
 import { Safe } from "@/server/safe"
 import { Status } from "@grpc/grpc-js/build/src/constants"
 import path from "node:path"
 import * as fs from "node:fs"
-import { StaffClient } from "@/proto/staff_grpc_pb";
-import { StaffObject } from "@/proto/staff_pb";
-
+import { StaffObject } from "@/proto/staff_pb"
 
 const loadSSLCertificate = () => {
     const cert = Buffer.from(process.env.SSL_CERTIFICATE || "", 'base64').toString('utf-8');
@@ -26,6 +26,11 @@ export const authClient = new AuthClient(
 );
 
 export const staffClient = new StaffClient(
+    process.env.GRPC_SERVER_ADDRESS || 'localhost:8080',
+    credentials.createSsl(fs.readFileSync(loadSSLCertificate()))
+);
+
+export const logClient = new LogClient(
     process.env.GRPC_SERVER_ADDRESS || 'localhost:8080',
     credentials.createSsl(fs.readFileSync(loadSSLCertificate()))
 );
@@ -84,10 +89,10 @@ export function unary_callback<T>(
 
 
 export function stream_callback<T>(
-    res: (value: Safe<StaffObject[]>) => void,
+    res: (value: Safe<T[]>) => void,
 ): (stream: ClientReadableStream<T>) => void {
     return (stream: ClientReadableStream<T>) => {
-        const dataBuffer: StaffObject[] = [];
+        const dataBuffer: T[] = [];
 
         stream.on("data", (data: any) => {
             dataBuffer.push(data);

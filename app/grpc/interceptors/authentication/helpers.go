@@ -4,7 +4,6 @@ import (
 	"context"
 	"crspy2/licenses/app/grpc/utils"
 	"crspy2/licenses/database"
-	"fmt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -34,8 +33,7 @@ func RetrieveSessionFromContext(ctx context.Context) (*database.SessionModel, co
 	if !ok {
 		return nil, nil, status.Errorf(codes.InvalidArgument, "Missing metadata")
 	}
-	fmt.Println("Metadata: ", md)
-	// Get session token from metadata
+
 	encryptedSessionToken, ok := md["session_token"]
 	if !ok {
 		return nil, nil, status.Errorf(codes.Unauthenticated, "Missing session token")

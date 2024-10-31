@@ -23,6 +23,7 @@ const (
 	License_UserLicenseKeyStream_FullMethodName = "/protofiles.License/UserLicenseKeyStream"
 	License_CreateLicense_FullMethodName        = "/protofiles.License/CreateLicense"
 	License_RedeemLicense_FullMethodName        = "/protofiles.License/RedeemLicense"
+	License_RevokeUserKeys_FullMethodName       = "/protofiles.License/RevokeUserKeys"
 )
 
 // LicenseClient is the client API for License service.
@@ -33,6 +34,7 @@ type LicenseClient interface {
 	UserLicenseKeyStream(ctx context.Context, in *UserIdRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[LicenseObject], error)
 	CreateLicense(ctx context.Context, in *CreateLicenseRequest, opts ...grpc.CallOption) (*LicenseObject, error)
 	RedeemLicense(ctx context.Context, in *RedeemLicenseRequest, opts ...grpc.CallOption) (*StandardResponse, error)
+	RevokeUserKeys(ctx context.Context, in *UserIdRequest, opts ...grpc.CallOption) (*StandardResponse, error)
 }
 
 type licenseClient struct {
@@ -92,6 +94,16 @@ func (c *licenseClient) RedeemLicense(ctx context.Context, in *RedeemLicenseRequ
 	return out, nil
 }
 
+func (c *licenseClient) RevokeUserKeys(ctx context.Context, in *UserIdRequest, opts ...grpc.CallOption) (*StandardResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StandardResponse)
+	err := c.cc.Invoke(ctx, License_RevokeUserKeys_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LicenseServer is the server API for License service.
 // All implementations must embed UnimplementedLicenseServer
 // for forward compatibility.
@@ -100,6 +112,7 @@ type LicenseServer interface {
 	UserLicenseKeyStream(*UserIdRequest, grpc.ServerStreamingServer[LicenseObject]) error
 	CreateLicense(context.Context, *CreateLicenseRequest) (*LicenseObject, error)
 	RedeemLicense(context.Context, *RedeemLicenseRequest) (*StandardResponse, error)
+	RevokeUserKeys(context.Context, *UserIdRequest) (*StandardResponse, error)
 	mustEmbedUnimplementedLicenseServer()
 }
 
@@ -121,6 +134,9 @@ func (UnimplementedLicenseServer) CreateLicense(context.Context, *CreateLicenseR
 }
 func (UnimplementedLicenseServer) RedeemLicense(context.Context, *RedeemLicenseRequest) (*StandardResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RedeemLicense not implemented")
+}
+func (UnimplementedLicenseServer) RevokeUserKeys(context.Context, *UserIdRequest) (*StandardResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RevokeUserKeys not implemented")
 }
 func (UnimplementedLicenseServer) mustEmbedUnimplementedLicenseServer() {}
 func (UnimplementedLicenseServer) testEmbeddedByValue()                 {}
@@ -208,6 +224,24 @@ func _License_RedeemLicense_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _License_RevokeUserKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LicenseServer).RevokeUserKeys(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: License_RevokeUserKeys_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LicenseServer).RevokeUserKeys(ctx, req.(*UserIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // License_ServiceDesc is the grpc.ServiceDesc for License service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -226,6 +260,10 @@ var License_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RedeemLicense",
 			Handler:    _License_RedeemLicense_Handler,
+		},
+		{
+			MethodName: "RevokeUserKeys",
+			Handler:    _License_RevokeUserKeys_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

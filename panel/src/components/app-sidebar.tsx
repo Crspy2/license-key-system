@@ -99,7 +99,7 @@ export function AppSidebar({ session, ...props }: React.ComponentProps<typeof Si
                   <Image src="/crspy_pfp.webp" alt="company logo" width={500} height={500} />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Altera</span>
+                  <span className="truncate font-semibold">Crspy</span>
                   <span className="truncate text-xs">Licences</span>
                 </div>
               </Link>

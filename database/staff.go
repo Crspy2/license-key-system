@@ -2,7 +2,6 @@ package database
 
 import (
 	"errors"
-	"fmt"
 	"go.jetify.com/typeid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -171,8 +170,9 @@ func (s *Staff) GetByName(name string) (*StaffModel, error) {
 func (s *Staff) List() ([]StaffModel, error) {
 	var staff []StaffModel
 
-	err := s.db.Find(&staff).
-		Order("created_at asc").
+	err := s.db.
+		Order("createdAt ASC").
+		Find(&staff).
 		Error
 	if err != nil {
 		return nil, err
@@ -253,7 +253,6 @@ func (s *Staff) RemovePermission(id string, permission Permission) error {
 func (s *Staff) SetPermissions(id string, permissions []Permission) (*StaffModel, error) {
 	staff, err := s.get(id)
 	if err != nil {
-		fmt.Println("ERROR: ", err)
 		return nil, err
 	}
 
@@ -264,7 +263,6 @@ func (s *Staff) SetPermissions(id string, permissions []Permission) (*StaffModel
 	staff.Perms = newPerms
 
 	if err := s.db.Save(staff).Error; err != nil {
-		fmt.Println("Error 2: ", err)
 		return nil, err
 	}
 
