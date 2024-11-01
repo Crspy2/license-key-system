@@ -15,6 +15,7 @@ service User {
   rpc CreateUser(UserCreateRequest) returns (UserObject);
 
   rpc GetUser(UserIdRequest) returns (UserObject);
+  rpc SearchUserStream(UserNameRequest) returns (stream UserObject);
   rpc ListUsersStream(google.protobuf.Empty) returns (stream UserObject);
 
   rpc ResetHardwareId(UserIdRequest) returns (StandardResponse);
@@ -30,4 +31,8 @@ message UserCreateRequest {
 
 message UserIdRequest {
   uint64 userId = 1;
+}
+
+message UserNameRequest {
+  string name = 1;
 }

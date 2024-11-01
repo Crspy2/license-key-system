@@ -7,6 +7,7 @@ import { userClient, stream_callback, unary_callback } from "@/server/grpc"
 import {
     UserCreateRequest,
     UserIdRequest,
+    UserNameRequest,
     UserObject,
 } from "@/proto/user_pb"
 import { SetMetadata } from "@/server/services/helpers"
@@ -41,6 +42,29 @@ export const getUser = cache(async (userId: number) => {
 
     if (r.success) {
         return { success: r.success, message: "Retrieved user information", data: r.data.toObject() }
+    }
+
+    return { success: r.success, code: r.code, message: r.message }
+})
+
+export const searchUsers = cache(async (param: string) => {
+    const md = await SetMetadata()
+
+    const req = new UserNameRequest()
+    req.setName(param)
+
+    const r = await new Promise<Safe<UserObject[]>>((res) => {
+        const stream = userClient.searchUserStream(req, md)
+        stream_callback(res)(stream)
+    })
+
+    if (r.success) {
+        const staffList: UserObject.AsObject[] = []
+        for (const staff of r.data) {
+            staffList.push(staff.toObject())
+        }
+
+        return { success: r.success, message: "Filtered Staff list", data: staffList }
     }
 
     return { success: r.success, code: r.code, message: r.message }

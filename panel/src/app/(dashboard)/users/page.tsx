@@ -15,11 +15,6 @@ const UsersPage = async () => {
         <Error text="You do not have the correct permissions to view this page" />
     )
 
-    const users = await listUsers()
-    if (!users.success) return (
-        <Error text={users.message} />
-    )
-
     return (
         <div className="container mx-auto py-6 space-y-6 px-8">
             <div className="py-6 space-y-6">
@@ -28,7 +23,7 @@ const UsersPage = async () => {
                     <CreateUserButton/>
                 </div>
                 <div className="p-4 rounded-md">
-                    <UserTable users={users!.data} />
+                    <UserTable />
                 </div>
             </div>
         </div>

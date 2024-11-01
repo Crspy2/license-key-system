@@ -1,27 +1,31 @@
 "use client"
 
-import {UserObject} from "@/proto/user_pb"
-import {DataTable} from "@/components/tables/data-table"
-import {userColumns} from "@/components/users/user-columns"
-import {Search} from "lucide-react";
-import {Input} from "@/components/ui/input";
-import {useState} from "react";
+import { useEffect, useState } from "react"
+import { toast } from "sonner"
+import { useDebouncedSearch } from "@/hooks/useDebouncedSearch"
+import { searchUsers } from "@/server/services/user"
+import { UserObject } from "@/proto/user_pb"
+import { DataTable } from "@/components/tables/data-table"
+import { userColumns } from "@/components/users/user-columns"
+import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input"
 
-interface UserTableProps {
-    users: UserObject.AsObject[]
-    search: string
-}
-
-export const UserTable = ({
-       users,
-}: UserTableProps) => {
+export const UserTable = () => {
     const [search, setSearch] = useState('')
+    const [filteredUsers, setFilteredUsers] = useState<UserObject.AsObject[]>()
 
-    const filteredUsers = users.filter((user) => {
-        return search === '' ||
-            user.name.toLowerCase().includes(search.toLowerCase()) ;
-    })
-
+    const debouncedQuery = useDebouncedSearch(search, 500);
+    useEffect(() => {
+        if (!debouncedQuery) {
+            setFilteredUsers([]);
+            return;
+        }
+        searchUsers(search).then((usrs) => {
+            setFilteredUsers(usrs.data!)
+        }).catch((err) => {
+            toast.error(err)
+        })
+    }, [search])
     return (
         <div className="flex flex-col">
             <div className="relative flex-1">
@@ -33,7 +37,7 @@ export const UserTable = ({
                     className="pl-9"
                 />
             </div>
-            <DataTable columns={userColumns} data={filteredUsers}/>
+            <DataTable columns={userColumns} data={filteredUsers || []}/>
         </div>
     )
 }

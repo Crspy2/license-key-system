@@ -10,7 +10,7 @@ import (
 
 type UserModel struct {
 	ID           uint64 `gorm:"unique;primaryKey"`
-	Name         string `gorm:"unique"`
+	Name         string `gorm:"unique;index"`
 	PasswordHash sql.NullString
 	HWID         sql.NullString
 	Banned       bool `gorm:"default:false"`
@@ -54,6 +54,21 @@ func (s *User) List() ([]UserModel, error) {
 	var users []UserModel
 
 	err := s.db.
+		Find(&users).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+func (s *User) Search(param string) ([]UserModel, error) {
+	var users []UserModel
+
+	err := s.db.
+		Where("name ILIKE ?", "%"+param+"%").
 		Find(&users).
 		Error
 

@@ -82,6 +82,46 @@ func (s *UserServer) GetUser(ctx context.Context, in *pf.UserIdRequest) (*pf.Use
 	}, nil
 }
 
+func (s *UserServer) SearchUserStream(in *pf.UserNameRequest, stream pf.User_ListUsersStreamServer) error {
+	session := stream.Context().Value("session").(*database.SessionModel)
+	if session == nil {
+		return status.Errorf(codes.Unauthenticated, "No session information found")
+	}
+
+	if !session.Staff.HasPermission(database.DefaultPermission) {
+		return status.Errorf(codes.PermissionDenied, "You do not have permission to view user information")
+	}
+
+	name := in.GetName()
+	if name == "" {
+		return status.Errorf(codes.InvalidArgument, "A username is required for user search")
+	}
+
+	users, err := database.Client.Users.Search(name)
+	if err != nil {
+		return status.Errorf(codes.NotFound, err.Error())
+	}
+
+	for _, user := range users {
+		select {
+		case <-stream.Context().Done():
+			return stream.Context().Err()
+		default:
+		}
+
+		u := &pf.UserObject{
+			Id:     user.ID,
+			Name:   user.Name,
+			Banned: user.Banned,
+		}
+
+		if err = stream.Send(u); err != nil {
+			return status.Errorf(codes.Internal, err.Error())
+		}
+	}
+	return nil
+}
+
 func (s *UserServer) ListUsersStream(_ *empty.Empty, stream pf.User_ListUsersStreamServer) error {
 	session := stream.Context().Value("session").(*database.SessionModel)
 	if session == nil {
