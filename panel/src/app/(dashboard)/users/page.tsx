@@ -4,6 +4,7 @@ import { DataTable } from "@/components/tables/data-table"
 import { CreateUserButton } from "@/components/users/create-user-button"
 import { userColumns } from "@/components/users/user-columns"
 import { Error } from "@/components/error"
+import {UserTable} from "@/components/users/user-table";
 
 const UsersPage = async () => {
     const session = await getCurrentSession();
@@ -27,7 +28,7 @@ const UsersPage = async () => {
                     <CreateUserButton/>
                 </div>
                 <div className="p-4 rounded-md">
-                    <DataTable columns={userColumns} data={users.data!}/>
+                    <UserTable users={users!.data} />
                 </div>
             </div>
         </div>

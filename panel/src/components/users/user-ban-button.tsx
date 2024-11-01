@@ -24,7 +24,7 @@ interface UserBanButtonProps {
 export const UserBanButton = ({ user }: UserBanButtonProps) => {
     const [isPending, startTransition] = useTransition()
     const [isBanned, setIsBanned] = useState(user.banned)
-    const [isModalOpen, setModalOpen] = useState(false);
+    const [isModalOpen, setModalOpen] = useState(false)
 
     const onClick = async () => {
         startTransition(async () => {
