@@ -102,11 +102,11 @@ func (sm *StaffModel) GetRoleText() string {
 }
 
 func (sm *StaffModel) HasHigherPermissions(otherStaff StaffModel) bool {
-	return sm.Perms > otherStaff.Perms
+	return sm.Perms > otherStaff.Perms || sm.Role == OwnerRole
 }
 
 func (sm *StaffModel) HasHigherRole(otherStaff StaffModel) bool {
-	return sm.Role > otherStaff.Role
+	return sm.Role > otherStaff.Role || sm.Role == OwnerRole
 }
 
 type Staff struct {
