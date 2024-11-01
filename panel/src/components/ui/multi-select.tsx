@@ -469,8 +469,8 @@ const MultiSelect = React.forwardRef<MultipleSelectorRef, MultipleSelectorProps>
                                     <Badge
                                         key={option.value}
                                             className={cn(
-                                                'data-[disabled]:bg-muted-foreground data-[disabled]:text-muted data-[disabled]:hover:bg-muted-foreground',
-                                                'data-[fixed]:bg-muted-foreground data-[fixed]:text-muted data-[fixed]:hover:bg-muted-foreground',
+                                                'data-[disabled]:bg-muted-foreground data-[disabled]:text-[hsl(210_40%_96.1%)] data-[disabled]:hover:bg-muted-foreground',
+                                                'data-[fixed]:bg-muted-foreground data-[fixed]:text-[hsl(210_40%_96.1%)] data-[fixed]:hover:bg-muted-foreground',
                                                 badgeClassName,
                                         )}
                                         data-fixed={option.fixed}
@@ -493,7 +493,7 @@ const MultiSelect = React.forwardRef<MultipleSelectorRef, MultipleSelectorProps>
                                         }}
                                         onClick={() => handleUnselect(option)}
                                     >
-                                        <IoClose className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                                        <IoClose className="h-3 w-3 text-[hsl(215.4_16.3%_46.9%)] hover:text-[hsl(222.2_47.4%_11.2%)]" />
                                     </button>
                                 </Badge>
                             )
@@ -525,7 +525,7 @@ const MultiSelect = React.forwardRef<MultipleSelectorRef, MultipleSelectorProps>
                             }}
                             placeholder={hidePlaceholderWhenSelected && selected.length !== 0 ? '' : placeholder}
                             className={cn(
-                                'flex-1 bg-transparent outline-none placeholder:text-muted-foreground',
+                                'flex-1 bg-transparent outline-none placeholder:text-[hsl(215.4_16.3%_46.9%)]',
                                 {
                                     'w-full': hidePlaceholderWhenSelected,
                                     'px-3 py-2': selected.length === 0,
@@ -599,7 +599,7 @@ const MultiSelect = React.forwardRef<MultipleSelectorRef, MultipleSelectorProps>
                                     }}
                                     className={cn(
                                         'cursor-pointer',
-                                        option.disable && 'cursor-default text-muted-foreground',
+                                        option.disable && 'cursor-default text-[hsl(215.4_16.3%_46.9%)]',
                                 )}
                                 >
                                     {option.label}

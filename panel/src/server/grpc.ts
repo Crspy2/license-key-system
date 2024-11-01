@@ -6,6 +6,7 @@ import {
 import { AuthClient } from '@/proto/auth_grpc_pb'
 import { StaffClient } from "@/proto/staff_grpc_pb"
 import { LogClient } from "@/proto/logs_grpc_pb"
+import { UserClient } from "@/proto/user_grpc_pb"
 import { Safe } from "@/server/safe"
 import { Status } from "@grpc/grpc-js/build/src/constants"
 import path from "node:path"
@@ -31,6 +32,11 @@ export const staffClient = new StaffClient(
 );
 
 export const logClient = new LogClient(
+    process.env.GRPC_SERVER_ADDRESS || 'localhost:8080',
+    credentials.createSsl(fs.readFileSync(loadSSLCertificate()))
+);
+
+export const userClient = new UserClient(
     process.env.GRPC_SERVER_ADDRESS || 'localhost:8080',
     credentials.createSsl(fs.readFileSync(loadSSLCertificate()))
 );

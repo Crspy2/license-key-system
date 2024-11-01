@@ -32,7 +32,10 @@ export const PermissionSelect = ({ staff }: PermissionSelectProps) => {
     ] as Option[];
 
     const [isPending, startTransition] = useTransition()
-    const [previousPerms, setPreviousPerms] = useState(ConvertPermissionsToValues(staff.permsList))
+    const [previousPerms, setPreviousPerms] = useState(staff.permsList.map(p => ({
+        label: p,
+        value: ConvertPermissionsToValues([p])[0]
+    })))
 
     const form = useForm<z.infer<typeof PermissionsSchema>>({
         resolver: zodResolver(PermissionsSchema),
@@ -47,7 +50,8 @@ export const PermissionSelect = ({ staff }: PermissionSelectProps) => {
 
     const onSubmit = async (values: z.infer<typeof PermissionsSchema>) => {
         const permOptions = values.permissions.map(p => p.value)
-        if (JSON.stringify(previousPerms) === JSON.stringify(permOptions)) {
+        const previousPermValues = previousPerms.map(p => p.value)
+        if (JSON.stringify(previousPermValues) === JSON.stringify(permOptions)) {
             return null
         }
 
@@ -55,9 +59,10 @@ export const PermissionSelect = ({ staff }: PermissionSelectProps) => {
             const res = await setStaffPermissions(values.staffId, permOptions)
             if (!res.success) {
                 toast.error(res.message)
+                form.setValue("permissions", previousPerms)
                 return
             }
-            setPreviousPerms(permOptions)
+            setPreviousPerms(values.permissions)
             toast.success(res.message)
             return
         })

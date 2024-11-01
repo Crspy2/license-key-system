@@ -30,7 +30,7 @@ export const LogCard = ({ log }: LogCardProps) => {
                 <div className="flex-1">
                     <div className="flex items-center justify-between">
                         <h3 className="~text-sm/base font-semibold">{log.title}</h3>
-                        <time className="~text-xs/sm text-muted-foreground">
+                        <time className="~text-xs/sm text-[hsl(215.4_16.3%_46.9%)]">
                             {titleCase(formatRelative(new Date(log.occurredAt!.seconds * 1000), new Date()))}
                         </time>
                     </div>

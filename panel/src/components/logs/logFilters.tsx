@@ -47,7 +47,7 @@ export const LogFilters = ({
     return (
         <div className="flex flex-col md:flex-row items-center space-y-4 md:space-x-4 md:space-y-0">
             <div className="relative flex-1">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-3 h-4 w-4 text-[hsl(215.4_16.3%_46.9%)]" />
                 <Input
                     placeholder="Search logs..."
                     value={search}

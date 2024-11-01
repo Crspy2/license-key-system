@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -21,6 +22,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	User_CreateUser_FullMethodName      = "/protofiles.User/CreateUser"
 	User_GetUser_FullMethodName         = "/protofiles.User/GetUser"
+	User_ListUsersStream_FullMethodName = "/protofiles.User/ListUsersStream"
 	User_ResetHardwareId_FullMethodName = "/protofiles.User/ResetHardwareId"
 	User_ResetPassword_FullMethodName   = "/protofiles.User/ResetPassword"
 	User_BanUser_FullMethodName         = "/protofiles.User/BanUser"
@@ -33,6 +35,7 @@ const (
 type UserClient interface {
 	CreateUser(ctx context.Context, in *UserCreateRequest, opts ...grpc.CallOption) (*UserObject, error)
 	GetUser(ctx context.Context, in *UserIdRequest, opts ...grpc.CallOption) (*UserObject, error)
+	ListUsersStream(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[UserObject], error)
 	ResetHardwareId(ctx context.Context, in *UserIdRequest, opts ...grpc.CallOption) (*StandardResponse, error)
 	ResetPassword(ctx context.Context, in *UserIdRequest, opts ...grpc.CallOption) (*StandardResponse, error)
 	BanUser(ctx context.Context, in *UserIdRequest, opts ...grpc.CallOption) (*StandardResponse, error)
@@ -66,6 +69,25 @@ func (c *userClient) GetUser(ctx context.Context, in *UserIdRequest, opts ...grp
 	}
 	return out, nil
 }
+
+func (c *userClient) ListUsersStream(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[UserObject], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &User_ServiceDesc.Streams[0], User_ListUsersStream_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[emptypb.Empty, UserObject]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type User_ListUsersStreamClient = grpc.ServerStreamingClient[UserObject]
 
 func (c *userClient) ResetHardwareId(ctx context.Context, in *UserIdRequest, opts ...grpc.CallOption) (*StandardResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
@@ -113,6 +135,7 @@ func (c *userClient) RevokeBan(ctx context.Context, in *UserIdRequest, opts ...g
 type UserServer interface {
 	CreateUser(context.Context, *UserCreateRequest) (*UserObject, error)
 	GetUser(context.Context, *UserIdRequest) (*UserObject, error)
+	ListUsersStream(*emptypb.Empty, grpc.ServerStreamingServer[UserObject]) error
 	ResetHardwareId(context.Context, *UserIdRequest) (*StandardResponse, error)
 	ResetPassword(context.Context, *UserIdRequest) (*StandardResponse, error)
 	BanUser(context.Context, *UserIdRequest) (*StandardResponse, error)
@@ -132,6 +155,9 @@ func (UnimplementedUserServer) CreateUser(context.Context, *UserCreateRequest) (
 }
 func (UnimplementedUserServer) GetUser(context.Context, *UserIdRequest) (*UserObject, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
+}
+func (UnimplementedUserServer) ListUsersStream(*emptypb.Empty, grpc.ServerStreamingServer[UserObject]) error {
+	return status.Errorf(codes.Unimplemented, "method ListUsersStream not implemented")
 }
 func (UnimplementedUserServer) ResetHardwareId(context.Context, *UserIdRequest) (*StandardResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ResetHardwareId not implemented")
@@ -201,6 +227,17 @@ func _User_GetUser_Handler(srv interface{}, ctx context.Context, dec func(interf
 	}
 	return interceptor(ctx, in, info, handler)
 }
+
+func _User_ListUsersStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(emptypb.Empty)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(UserServer).ListUsersStream(m, &grpc.GenericServerStream[emptypb.Empty, UserObject]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type User_ListUsersStreamServer = grpc.ServerStreamingServer[UserObject]
 
 func _User_ResetHardwareId_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UserIdRequest)
@@ -306,6 +343,12 @@ var User_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _User_RevokeBan_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "ListUsersStream",
+			Handler:       _User_ListUsersStream_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "user.proto",
 }

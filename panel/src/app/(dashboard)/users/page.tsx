@@ -1,5 +1,9 @@
+import { getCurrentSession } from "@/server/services/session"
+import { listUsers } from "@/server/services/user"
+import { DataTable } from "@/components/tables/data-table"
+import { CreateUserButton } from "@/components/users/create-user-button"
+import { userColumns } from "@/components/users/user-columns"
 import { Error } from "@/components/error"
-import {getCurrentSession} from "@/server/services/session";
 
 const UsersPage = async () => {
     const session = await getCurrentSession();
@@ -10,8 +14,23 @@ const UsersPage = async () => {
         <Error text="You do not have the correct permissions to view this page" />
     )
 
+    const users = await listUsers()
+    if (!users.success) return (
+        <Error text={users.message} />
+    )
+
     return (
-        <Error text="Page is not finished being developed" />
+        <div className="container mx-auto py-6 space-y-6 px-8">
+            <div className="py-6 space-y-6">
+                <div className="flex flex-row items-center justify-between">
+                    <h1 className="~text-3xl/4xl font-bold">User List</h1>
+                    <CreateUserButton/>
+                </div>
+                <div className="p-4 rounded-md">
+                    <DataTable columns={userColumns} data={users.data!}/>
+                </div>
+            </div>
+        </div>
     )
 }
 

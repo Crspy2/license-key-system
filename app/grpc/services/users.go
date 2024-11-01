@@ -5,6 +5,7 @@ import (
 	"crspy2/licenses/database"
 	pf "crspy2/licenses/proto/protofiles"
 	"fmt"
+	"github.com/golang/protobuf/ptypes/empty"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -81,6 +82,41 @@ func (s *UserServer) GetUser(ctx context.Context, in *pf.UserIdRequest) (*pf.Use
 	}, nil
 }
 
+func (s *UserServer) ListUsersStream(_ *empty.Empty, stream pf.User_ListUsersStreamServer) error {
+	session := stream.Context().Value("session").(*database.SessionModel)
+	if session == nil {
+		return status.Errorf(codes.Unauthenticated, "No session information found")
+	}
+
+	if !session.Staff.HasPermission(database.DefaultPermission) {
+		return status.Errorf(codes.PermissionDenied, "You do not have permission to view user information")
+	}
+
+	users, err := database.Client.Users.List()
+	if err != nil {
+		return status.Errorf(codes.NotFound, err.Error())
+	}
+
+	for _, user := range users {
+		select {
+		case <-stream.Context().Done():
+			return stream.Context().Err()
+		default:
+		}
+
+		u := &pf.UserObject{
+			Id:     user.ID,
+			Name:   user.Name,
+			Banned: user.Banned,
+		}
+
+		if err = stream.Send(u); err != nil {
+			return status.Errorf(codes.Internal, err.Error())
+		}
+	}
+	return nil
+}
+
 func (s *UserServer) ResetHardwareId(ctx context.Context, in *pf.UserIdRequest) (*pf.StandardResponse, error) {
 	session := ctx.Value("session").(*database.SessionModel)
 	if session == nil {
@@ -98,7 +134,7 @@ func (s *UserServer) ResetHardwareId(ctx context.Context, in *pf.UserIdRequest) 
 
 	user, err := database.Client.Users.ResetHWID(userId)
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, "User could not be found")
+		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
 
 	_, _ = database.Client.Logs.LogEvent(session.StaffID, "User", "HWID Reset", fmt.Sprintf("%s has issued a hardware id reset for %s's account", session.Staff.Name, user.Name), time.Now())
@@ -125,7 +161,7 @@ func (s *UserServer) ResetPassword(ctx context.Context, in *pf.UserIdRequest) (*
 
 	user, err := database.Client.Users.ResetPassword(userId)
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, "User could not be found")
+		return nil, err
 	}
 
 	_, _ = database.Client.Logs.LogEvent(session.StaffID, "User", "Password Reset", fmt.Sprintf("%s has issued a password reset for %s's account", session.Staff.Name, user.Name), time.Now())
@@ -185,6 +221,6 @@ func (s *UserServer) RevokeBan(ctx context.Context, in *pf.UserIdRequest) (*pf.S
 	_, _ = database.Client.Logs.LogEvent(session.StaffID, "User", "User Ban Revoked", fmt.Sprintf("%s has revoked a ban to %s's account", session.Staff.Name, user.Name), time.Now())
 
 	return &pf.StandardResponse{
-		Message: fmt.Sprintf("The ban on %s's account has been revoked", user.Name),
+		Message: fmt.Sprintf("The ban on %s's account has been removed", user.Name),
 	}, nil
 }
