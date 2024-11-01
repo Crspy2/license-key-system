@@ -20,7 +20,10 @@ const LogsPage = async () => {
 
     return (
         <div className="container mx-auto py-6 space-y-6 px-8">
-            <LogList logs={logs.data} staff={staff.data || []} />
+            <div className="py-6 space-y-6">
+                <h1 className="~text-3xl/4xl font-bold">Audit Logs</h1>
+                <LogList logs={logs.data} staff={staff.data || []}/>
+            </div>
         </div>
     );
 }

@@ -15,10 +15,12 @@ const StaffPage = async () => {
     const staff = await listStaff();
 
     return (
-        <div className="m-8 gap-4 space-y-5">
-            <h1 className="text-4xl font-bold">Staff Management</h1>
-            <div className="p-4 rounded-md">
-                <DataTable columns={staffColumns} data={staff.data!}/>
+        <div className="container mx-auto py-6 space-y-6 px-8">
+            <div className="py-6 space-y-6">
+                <h1 className="~text-3xl/4xl font-bold">Staff Management</h1>
+                <div className="p-4 rounded-md">
+                    <DataTable columns={staffColumns} data={staff.data!}/>
+                </div>
             </div>
         </div>
     )

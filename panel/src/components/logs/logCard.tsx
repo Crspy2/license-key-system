@@ -14,24 +14,23 @@ export const LogCard = ({ log }: LogCardProps) => {
     return (
         <Card>
             <CardHeader className="flex flex-row items-center gap-4 space-y-0">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#313ee0]">
+                <div className="flex ~h-8/10 ~w-8/10 items-center justify-center rounded-lg bg-[#313ee0]">
                     {log.object === "User" ? (
-                        <FaUser className="h-6 w-6" />
+                        <FaUser className="~h-5/6 ~w-5/6" />
                     ) : log.object === "Staff" ? (
-                        <FaUserShield className="h-6 w-6" />
+                        <FaUserShield className="~h-5/6 ~w-5/6" />
                     ) : log.object === "License Key" ? (
-                        <FaKey className="h-6 w-6" />
+                        <FaKey className="~h-5/6 ~w-5/6" />
                     ) : log.object === "Product" ? (
-                        <AiFillProduct className="h-6 w-6" />
+                        <AiFillProduct className="~h-5/6 ~w-5/6" />
                     ) : (
-                        <FaCube className="h-6 w-6" />
+                        <FaCube className="~h-5/6 ~w-5/6" />
                     )}
                 </div>
                 <div className="flex-1">
                     <div className="flex items-center justify-between">
-                        <h3 className="font-semibold">{log.title}</h3>
-                        <time className="text-sm text-muted-foreground">
-                            {(new Date(log.occurredAt!.seconds * 1000)).toDateString()}<br />
+                        <h3 className="~text-sm/base font-semibold">{log.title}</h3>
+                        <time className="~text-xs/sm text-muted-foreground">
                             {titleCase(formatRelative(new Date(log.occurredAt!.seconds * 1000), new Date()))}
                         </time>
                     </div>
@@ -48,7 +47,7 @@ export const LogCard = ({ log }: LogCardProps) => {
                 </div>
             </CardHeader>
             <CardContent>
-                <p className="text-sm">{log.description}</p>
+                <p className="~text-xs/sm">{log.description}</p>
             </CardContent>
         </Card>
     );

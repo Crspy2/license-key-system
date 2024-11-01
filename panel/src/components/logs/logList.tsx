@@ -9,7 +9,7 @@ import { LogFilters } from "@/components/logs/logFilters"
 
 interface LogListProps {
     logs: LogObject.AsObject[]
-    staff: StaffObject.AsObject[]
+    staff?: StaffObject.AsObject[]
 }
 
 const isSameDay = (date1: Date, date2: Date) => {
@@ -47,8 +47,7 @@ export const LogList = ({ logs, staff }: LogListProps) => {
     }
 
     return (
-        <div className="container mx-auto py-6 space-y-6">
-            <h1 className="text-3xl font-bold">Audit Logs</h1>
+        <>
             <LogFilters
                 staff={staff}
                 search={search}
@@ -62,10 +61,16 @@ export const LogList = ({ logs, staff }: LogListProps) => {
                 onClearFilters={clearFilters}
             />
             <div className="space-y-4">
-                {filteredLogs.map((log) => (
-                    <LogCard key={log.id} log={log}/>
-                ))}
+                {filteredLogs.length > 0 ? (
+                    <>
+                        {filteredLogs.map((log) => (
+                            <LogCard key={log.id} log={log}/>
+                        ))}
+                    </>
+                ) : (
+                    <div className="flex items-center w-full text-sm justify-center">No logs found.</div>
+                )}
             </div>
-        </div>
+        </>
     );
 }

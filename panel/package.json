@@ -10,6 +10,7 @@
     "grpc": "rm -rf ./src/proto && mkdir ./src/proto && grpc_tools_node_protoc --plugin=protoc-gen-ts=./node_modules/.bin/protoc-gen-ts --grpc_out=grpc_js:./src/proto --js_out=import_style=commonjs:./src/proto --ts_out=grpc_js:./src/proto -I ../proto ../proto/*.proto"
   },
   "dependencies": {
+    "@fluid-tailwind/tailwind-merge": "^0.0.3",
     "@grpc/grpc-js": "^1.12.2",
     "@grpc/proto-loader": "^0.7.13",
     "@hookform/resolvers": "^3.9.0",
@@ -57,6 +58,7 @@
     "@types/react-dom": "^18",
     "eslint": "^8",
     "eslint-config-next": "15.0.1",
+    "fluid-tailwind": "^1.0.3",
     "grpc-tools": "^1.12.4",
     "grpc_tools_node_protoc_ts": "^5.3.3",
     "postcss": "^8",

@@ -171,7 +171,7 @@ func (s *Staff) List() ([]StaffModel, error) {
 	var staff []StaffModel
 
 	err := s.db.
-		Order("createdAt ASC").
+		Order("created_at ASC").
 		Find(&staff).
 		Error
 	if err != nil {
