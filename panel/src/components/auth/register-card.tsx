@@ -30,9 +30,23 @@ export const RegisterCard = () => {
 
     const onSubmit = async (values: z.infer<typeof RegisterSchema>) => {
         startTransition(async () => {
+            if (values.password !== values.confirmPassword) {
+                form.setError("confirmPassword", {
+                    type: "validate",
+                    message: "Passwords do not match",
+                })
+            }
+
             const data = await register(values)
             if (!data.success) {
-                toast.error(data.message)
+                if (data.message.includes("name")) {
+                    form.setError("username", {
+                        type: "validate",
+                        message: data.message,
+                    })
+                } else {
+                    toast.error(data.message)
+                }
                 return
             }
             toast.success(data.message)

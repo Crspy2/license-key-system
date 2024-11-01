@@ -1,7 +1,7 @@
 "use client"
 
 
-import { useTransition } from "react"
+import {useState, useTransition} from "react"
 import Link from "next/link"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -21,6 +21,7 @@ import {createUser} from "@/server/services/user";
 
 export const CreateUserButton = () => {
     const [isPending, startTransition] = useTransition()
+    const [isModalOpen, setModalOpen] = useState(false)
 
     const form = useForm<z.infer<typeof RegisterSchema>>({
         resolver: zodResolver(RegisterSchema),
@@ -31,25 +32,37 @@ export const CreateUserButton = () => {
         }
     })
 
+
     const onSubmit = async (values: z.infer<typeof RegisterSchema>) => {
         startTransition(async () => {
             if (values.password !== values.confirmPassword) {
-                toast.error("Passwords do not match")
+                form.setError("confirmPassword", {
+                    type: "validate",
+                    message: "Passwords do not match",
+                })
                 return
             }
 
             const user = await createUser(values.username, values.password)
             if (!user.success) {
-                toast.error(user.message)
+                if (user.message.includes("name")) {
+                    form.setError("username", {
+                        type: "validate",
+                        message: user.message,
+                    })
+                } else {
+                    toast.error(user.message)
+                }
                 return
             }
 
             toast.success("User account created successfully")
+            setModalOpen(false)
         })
     }
 
     return (
-        <ResponsiveModal>
+        <ResponsiveModal open={isModalOpen} onOpenChange={setModalOpen}>
             <ResponsiveModalTrigger asChild>
                 <Button variant="outline">Create User</Button>
             </ResponsiveModalTrigger>
